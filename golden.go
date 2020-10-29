@@ -3,12 +3,18 @@ package golden
 import (
 	"bufio"
 	"bytes"
+	"io"
+	"io/ioutil"
 	"net/http"
+	"net/http/httptest"
 	"net/textproto"
 	"net/url"
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // Golden file sections.
@@ -29,17 +35,18 @@ type Opt func(gld *Golden)
 
 // Golden represents golden file.
 type Golden struct {
-	Verb       string       // HTTP verb.
-	VerbSet    bool         // Set to true when Verb was set in golden file.
-	Path       string       // HTTP path.
-	PathSet    bool         // Set to true when Path was set in golden file.
-	Query      url.Values   // HTTP query.
-	QuerySet   bool         // Set to true when Query was set in golden file.
-	Headers    http.Header  // HTTP headers.
-	HeadersSet bool         // Set to true when Headers were set in golden file.
-	Body       bytes.Buffer // HTTP body.
-	BodySet    bool         // Set to true when Body was set in golden file.
+	Comments   []string      // Comments on the top of the file.
+	Verb       string        // HTTP verb.
+	VerbSet    bool          // Set to true when Verb was set in golden file.
+	Path       string        // HTTP path.
+	PathSet    bool          // Set to true when Path was set in golden file.
+	Query      url.Values    // HTTP query.
+	QuerySet   bool          // Set to true when Query was set in golden file.
+	Headers    http.Header   // HTTP headers.
+	HeadersSet bool          // Set to true when Headers were set in golden file.
+	Body       *bytes.Buffer // HTTP body.
 	fatal      fatalFn
+	t          *testing.T
 }
 
 // New reads golden file at pth and creates new instance of Golden.
@@ -49,6 +56,7 @@ func New(t *testing.T, pth string, opts ...Opt) *Golden {
 	gld := &Golden{
 		fatal:   t.Fatal,
 		Headers: make(http.Header, 0),
+		t:       t,
 	}
 
 	for _, opt := range opts {
@@ -77,12 +85,20 @@ func New(t *testing.T, pth string, opts ...Opt) *Golden {
 func (gld *Golden) processLine(lin string) error {
 	var err error
 
-	if gld.BodySet {
+	// If body is seen everything to the end
+	// of the file is treated as body content.
+	if gld.Body != nil {
 		gld.Body.WriteString(lin + "\n")
 		return nil
 	}
 
 	switch {
+	case strings.HasPrefix(lin, "#"):
+		// Set comments only if nothing else was set.
+		if !(gld.VerbSet || gld.PathSet || gld.QuerySet || gld.HeadersSet || gld.Body != nil) {
+			gld.Comments = append(gld.Comments, lin)
+		}
+
 	case strings.HasPrefix(lin, secVerb):
 		gld.Verb = lin[len(secVerb):]
 		gld.VerbSet = true
@@ -104,16 +120,55 @@ func (gld *Golden) processLine(lin string) error {
 		gld.HeadersSet = true
 
 	case strings.HasPrefix(lin, secBody):
+		if gld.Body == nil {
+			gld.Body = &bytes.Buffer{}
+		}
 		gld.Body.WriteString(lin[len(secBody):])
-		gld.BodySet = true
-
-	case strings.HasPrefix(lin, "#"):
-		// Do nothing.
 	}
 
 	return nil
 }
 
+// Request returns HTTP request matching golden file. It panics on error.
+func (gld *Golden) Request() *http.Request {
+	body := gld.Body.Bytes()
+	req := httptest.NewRequest(gld.Verb, gld.Path, bytes.NewReader(body))
+	req.URL.RawQuery = gld.Query.Encode()
+	for key, vv := range gld.Headers {
+		for _, v := range vv {
+			req.Header.Add(key, v)
+		}
+	}
+	return req
+}
+
+// AssertRequest asserts request matches the golden file.
+// Only the sections that were set are asserted.
+func (gld *Golden) AssertRequest(req *http.Request) {
+	if gld.VerbSet {
+		assert.Exactly(gld.t, http.MethodPost, req.Method)
+	}
+
+	if gld.PathSet {
+		assert.Exactly(gld.t, "/some/path", req.URL.Path)
+	}
+
+	if gld.QuerySet {
+		assert.Exactly(gld.t, gld.Query.Encode(), req.URL.RawQuery)
+	}
+
+	if gld.HeadersSet {
+		assert.Exactly(gld.t, gld.Headers, req.Header)
+	}
+
+	if gld.Body != nil {
+		body, err := ioutil.ReadAll(req.Body)
+		require.NoError(gld.t, err, "ReadAll")
+		assert.Exactly(gld.t, gld.Body.Bytes(), body)
+	}
+}
+
+// addHeader adds header line to headers.
 func addHeader(hs http.Header, lin string) error {
 	hr := bufio.NewReader(strings.NewReader(lin + "\r\n\r\n"))
 	tp := textproto.NewReader(hr)
@@ -126,5 +181,63 @@ func addHeader(hs http.Header, lin string) error {
 			hs.Add(key, v)
 		}
 	}
+	return nil
+}
+
+func SaveRequest(pth string, req *http.Request, coms ...string) error {
+	fil, err := os.Create(pth)
+	if err != nil {
+		return err
+	}
+
+	if len(coms) > 0 {
+		str := strings.Join(coms, "\n") + "\n\n"
+		if _, err = fil.WriteString(str); err != nil {
+			return err
+		}
+	}
+
+	str := secVerb + req.Method + "\n"
+	if _, err = fil.WriteString(str); err != nil {
+		return err
+	}
+
+	str = secPath + req.URL.Path + "\n"
+	if _, err = fil.WriteString(str); err != nil {
+		return err
+	}
+
+	str = secQuery + req.URL.RawQuery + "\n"
+	if _, err = fil.WriteString(str); err != nil {
+		return err
+	}
+
+	for h, vv := range req.Header {
+		for _, v := range vv {
+			str = secHeader + h + ": " + v + "\n"
+			if _, err = fil.WriteString(str); err != nil {
+				return err
+			}
+		}
+	}
+
+	var body []byte
+	if req.Body != nil {
+		var buf bytes.Buffer
+		tee := io.TeeReader(req.Body, &buf)
+		body, err = ioutil.ReadAll(tee)
+		if err != nil {
+			return err
+		}
+		_ = req.Body.Close()
+		req.Body = ioutil.NopCloser(bytes.NewReader(buf.Bytes()))
+		if _, err := fil.Write([]byte(secBody)); err != nil {
+			return err
+		}
+		if _, err := fil.Write(body); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
