@@ -1,6 +1,7 @@
 package golden
 
 import (
+	"bytes"
 	"io/ioutil"
 	"net/http"
 	"testing"
@@ -115,6 +116,50 @@ func Test_Golden_assert_http_request(t *testing.T) {
 
 	// --- Then ---
 	gld.AssertRequest(gld.Request())
+}
+
+func Test_Golden_template(t *testing.T) {
+	// --- Given ---
+	data := map[string]string{
+		"val1":  "my_val1",
+		"val2":  "my_val2",
+		"token": "my_token",
+	}
+
+	// --- When ---
+	gld := New(t, "testdata/template.txt", TplData(data))
+
+	// --- Then ---
+	assert.Exactly(t, http.MethodPost, gld.Verb)
+	assert.True(t, gld.VerbSet)
+	assert.Exactly(t, "/some/path", gld.Path)
+	assert.True(t, gld.PathSet)
+	assert.Exactly(t, "key0=val0&key1=my_val1", gld.Query.Encode())
+	assert.True(t, gld.QuerySet)
+
+	assert.Len(t, gld.Headers, 1)
+	assert.True(t, gld.HeadersSet)
+	assert.Contains(t, gld.Headers, "Authorization")
+	assert.Exactly(t, []string{"Bearer my_token"}, gld.Headers.Values("Authorization"))
+
+	assert.Exactly(t, `{"key2": "my_val2"}`, gld.Body.String())
+}
+
+func Test_Golden_WriteTo(t *testing.T) {
+	// --- Given ---
+	buf := &bytes.Buffer{}
+	gld := New(t, "testdata/basic.txt")
+
+	// --- When ---
+	n, err := gld.WriteTo(buf)
+
+	// --- Then ---
+	require.NoError(t, err)
+	assert.Exactly(t, int64(150), n)
+
+	exp, err := ioutil.ReadFile("testdata/basic.txt")
+	require.NoError(t, err)
+	assert.Exactly(t, string(exp), buf.String()+"\n")
 }
 
 func Test_SaveRequest(t *testing.T) {
