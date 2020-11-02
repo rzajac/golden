@@ -102,6 +102,11 @@ func (sec *Section) String() string {
 	return strings.Join(sec.lines, modToSep(sec.mod))
 }
 
+// Bytes works like String method but casts string to byte slice.
+func (sec *Section) Bytes() []byte {
+	return []byte(sec.String())
+}
+
 // Add adds line to the section.
 func (sec *Section) Add(line string) {
 	_, _, line = tokenize(line)

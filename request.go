@@ -1,6 +1,7 @@
 package golden
 
 import (
+	"encoding/json"
 	"errors"
 	"io"
 	"net/http"
@@ -107,6 +108,17 @@ func (req *Request) Request() *http.Request {
 	}
 
 	return httpReq
+}
+
+// UnmarshallJSONBody unmarshalls request body to v. Calls Fatal if body
+// section does not exist or json.Unmarshal returns error.
+func (req *Request) UnmarshallJSONBody(v interface{}) {
+	if sec := req.Section(SecBody); sec != nil {
+		if err := json.Unmarshal(sec.Bytes(), v); err != nil {
+			req.t.Fatal(err)
+		}
+	}
+	req.t.Fatal(errors.New("golden file does not have body"))
 }
 
 // RequestSave saves request as golden file.
