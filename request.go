@@ -117,6 +117,7 @@ func (req *Request) UnmarshallJSONBody(v interface{}) {
 		if err := json.Unmarshal(sec.Bytes(), v); err != nil {
 			req.t.Fatal(err)
 		}
+		return
 	}
 	req.t.Fatal(errors.New("golden file does not have body"))
 }
