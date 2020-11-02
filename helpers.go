@@ -40,19 +40,8 @@ func OpenTpl(t T, pth string, data interface{}) io.Reader {
 	return buf
 }
 
-// lines2Headers creates http.Header from header lines.
-func lines2Headers(t T, lines ...string) http.Header {
-	rdr := strings.NewReader(strings.Join(lines, "\r\n") + "\r\n\r\n")
-	tp := textproto.NewReader(bufio.NewReader(rdr))
-	hs, err := tp.ReadMIMEHeader()
-	if err != nil {
-		t.Fatal(err)
-	}
-	return http.Header(hs)
-}
-
-// headers2Lines creates lines representing http.Header.
-func headers2Lines(t T, hs http.Header) []string {
+// Headers2Lines creates lines representing http.Header.
+func Headers2Lines(t T, hs http.Header) []string {
 	buf := &bytes.Buffer{}
 	if err := hs.Write(buf); err != nil {
 		t.Fatal(err)
@@ -62,6 +51,17 @@ func headers2Lines(t T, hs http.Header) []string {
 		lns = lns[:len(lns)-1]
 	}
 	return lns
+}
+
+// lines2Headers creates http.Header from header lines.
+func lines2Headers(t T, lines ...string) http.Header {
+	rdr := strings.NewReader(strings.Join(lines, "\r\n") + "\r\n\r\n")
+	tp := textproto.NewReader(bufio.NewReader(rdr))
+	hs, err := tp.ReadMIMEHeader()
+	if err != nil {
+		t.Fatal(err)
+	}
+	return http.Header(hs)
 }
 
 // body2Lines returns http.Request body as lines.

@@ -10,6 +10,34 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func Test_Helpers_Headers2Lines(t *testing.T) {
+	// --- Given ---
+	hs := http.Header{}
+	hs.Add("Authorization", "Bearer token")
+	hs.Add("Custom-Header", "val0")
+	hs.Add("Custom-Header", "val1")
+
+	// --- When ---
+	lns := Headers2Lines(t, hs)
+
+	// --- Then ---
+	assert.Len(t, lns, 3)
+	assert.Exactly(t, "Authorization: Bearer token", lns[0])
+	assert.Exactly(t, "Custom-Header: val0", lns[1])
+	assert.Exactly(t, "Custom-Header: val1", lns[2])
+}
+
+func Test_Helpers_Headers2Lines_emptyHeaders(t *testing.T) {
+	// --- Given ---
+	hs := http.Header{}
+
+	// --- When ---
+	lns := Headers2Lines(t, hs)
+
+	// --- Then ---
+	assert.Len(t, lns, 0)
+}
+
 func Test_Helpers_lines2Headers(t *testing.T) {
 	// --- Given ---
 	lns := []string{
@@ -30,34 +58,6 @@ func Test_Helpers_lines2Headers(t *testing.T) {
 	assert.Exactly(t, "Bearer token", hs.Get("Authorization"))
 	assert.Exactly(t, "val0", hs.Values("Custom-Header")[0])
 	assert.Exactly(t, "val1", hs.Values("Custom-Header")[1])
-}
-
-func Test_Helpers_headers2Lines(t *testing.T) {
-	// --- Given ---
-	hs := http.Header{}
-	hs.Add("Authorization", "Bearer token")
-	hs.Add("Custom-Header", "val0")
-	hs.Add("Custom-Header", "val1")
-
-	// --- When ---
-	lns := headers2Lines(t, hs)
-
-	// --- Then ---
-	assert.Len(t, lns, 3)
-	assert.Exactly(t, "Authorization: Bearer token", lns[0])
-	assert.Exactly(t, "Custom-Header: val0", lns[1])
-	assert.Exactly(t, "Custom-Header: val1", lns[2])
-}
-
-func Test_Helpers_headers2Lines_emptyHeaders(t *testing.T) {
-	// --- Given ---
-	hs := http.Header{}
-
-	// --- When ---
-	lns := headers2Lines(t, hs)
-
-	// --- Then ---
-	assert.Len(t, lns, 0)
 }
 
 func Test_Helpers_body2Lines(t *testing.T) {

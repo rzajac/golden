@@ -139,7 +139,7 @@ func RequestSave(t T, w io.Writer, req *http.Request) {
 
 	header := &Section{
 		id:    SecHeader,
-		lines: headers2Lines(t, req.Header),
+		lines: Headers2Lines(t, req.Header),
 		mod:   "",
 	}
 	gld.sections = append(gld.sections, header)
