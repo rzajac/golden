@@ -1,8 +1,8 @@
 # Comment line 0.
 # Comment line 1.
 
-Verb::POST
-Path::/some/path
-Query::key0=val0&key1={{.val1}}
+ReqMethod::POST
+ReqPath::/some/path
+ReqQuery::key0=val0&key1={{.val1}}
 Header::Authorization: Bearer {{.token}}
 Body::{"key2": "{{.val2}}"}

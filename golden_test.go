@@ -1,9 +1,6 @@
 package golden
 
 import (
-	"bytes"
-	"io/ioutil"
-	"net/http"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -12,172 +9,75 @@ import (
 
 func Test_Golden_basic(t *testing.T) {
 	// --- When ---
-	gld := New(t, "testdata/basic.txt")
+	gld := NewGolden(t, Open(t, "testdata/request_basic.gold"))
 
 	// --- Then ---
-	assert.Exactly(t, http.MethodPost, gld.Verb)
-	assert.True(t, gld.VerbSet)
-	assert.Exactly(t, "/some/path", gld.Path)
-	assert.True(t, gld.PathSet)
-	assert.Exactly(t, "key0=val0&key1=val1", gld.Query.Encode())
-	assert.True(t, gld.QuerySet)
+	assert.Exactly(t, 6, gld.SectionCount())
 
-	assert.Len(t, gld.Headers, 1)
-	assert.True(t, gld.HeadersSet)
-	assert.Contains(t, gld.Headers, "Authorization")
-	assert.Exactly(t, []string{"Bearer token"}, gld.Headers.Values("Authorization"))
+	sec := gld.Section(SecComment)
+	require.NotNil(t, sec)
+	assert.Exactly(t, []string{" Comment line 0.", " Comment line 1."}, sec.lines)
+	assert.Exactly(t, ModNone, sec.mod)
 
-	assert.Exactly(t, `{"key2": "val2"}`, gld.Body.String())
-}
+	sec = gld.Section(SecReqMethod)
+	require.NotNil(t, sec)
+	assert.Exactly(t, []string{"POST"}, sec.lines)
+	assert.Exactly(t, ModNone, sec.mod)
 
-func Test_Golden_multi_header(t *testing.T) {
-	// --- When ---
-	gld := New(t, "testdata/multi_header.txt")
+	sec = gld.Section(SecReqPath)
+	require.NotNil(t, sec)
+	assert.Exactly(t, []string{"/some/path"}, sec.lines)
+	assert.Exactly(t, ModNone, sec.mod)
 
-	// --- Then ---
-	assert.Len(t, gld.Headers, 2)
-	assert.Contains(t, gld.Headers, "Authorization")
-	assert.Exactly(t, []string{"Bearer token"}, gld.Headers.Values("Authorization"))
-	assert.Exactly(t, []string{"application/json"}, gld.Headers.Values("Content-Type"))
+	sec = gld.Section(SecReqQuery)
+	require.NotNil(t, sec)
+	assert.Exactly(t, []string{"key0=val0&key1=val1"}, sec.lines)
+	assert.Exactly(t, ModNone, sec.mod)
+
+	sec = gld.Section(SecHeader)
+	require.NotNil(t, sec)
+	assert.Exactly(t, []string{"Authorization: Bearer token"}, sec.lines)
+	assert.Exactly(t, ModNone, sec.mod)
+
+	sec = gld.Section(SecBody)
+	require.NotNil(t, sec)
+	assert.Exactly(t, []string{`{"key2": "val2"}`}, sec.lines)
+	assert.Exactly(t, ModNone, sec.mod)
 }
 
 func Test_Golden_multi_line_body(t *testing.T) {
 	// --- When ---
-	gld := New(t, "testdata/body_multi_line_json.txt")
+	gld := NewGolden(t, Open(t, "testdata/body_multi_line_json.gold"))
 
 	// --- Then ---
-	assert.JSONEq(t, `{"key2": "val2"}`, gld.Body.String())
+	assert.Exactly(t, 2, gld.SectionCount())
+
+	sec := gld.Section(SecBody)
+	require.NotNil(t, sec)
+	assert.Exactly(t, "\n{\n    \"key2\": \"val2\"\n}", sec.String())
+	assert.Exactly(t, ModNone, sec.mod)
+
+	exp := []byte("Body::\n{\n    \"key2\": \"val2\"\n}\n")
+	assert.Exactly(t, exp, sec.Section())
 }
 
-func Test_Golden_multi_line_text(t *testing.T) {
-	// --- When ---
-	gld := New(t, "testdata/body_multi_line_text.txt")
-
-	// --- Then ---
-	assert.Exactly(t, "line 0\nline 1\n", gld.Body.String())
-}
-
-func Test_Golden_file_open_error(t *testing.T) {
+func Test_Golden_Template(t *testing.T) {
 	// --- Given ---
-	var called bool
-	opt0 := func(gld *Golden) {
-		gld.fatal = func(args ...interface{}) {
-			called = true
-		}
+	data := map[string]interface{}{
+		"val1": 1,
+		"val2": "val2",
 	}
+	rdr := OpenTpl(t, "testdata/request_template.tpl.gold", data)
 
 	// --- When ---
-	New(t, "invalid/path", opt0)
+	gld := NewGolden(t, rdr)
 
 	// --- Then ---
-	assert.True(t, called)
-}
+	sec := gld.Section(SecReqQuery)
+	assert.NotNil(t, sec)
+	assert.Exactly(t, "key0=val0&key1=1", sec.String())
 
-func Test_Golden_query_parse_error(t *testing.T) {
-	// --- Given ---
-	var called bool
-	opt0 := func(gld *Golden) {
-		gld.fatal = func(args ...interface{}) {
-			called = true
-		}
-	}
-
-	// --- When ---
-	New(t, "testdata/invalid_query.txt", opt0)
-
-	// --- Then ---
-	assert.True(t, called)
-}
-
-func Test_Golden_new_http_request(t *testing.T) {
-	// --- Given ---
-	gld := New(t, "testdata/basic.txt")
-
-	// --- When ---
-	req := gld.Request()
-
-	// --- Then ---
-	assert.Exactly(t, http.MethodPost, req.Method)
-	assert.Exactly(t, "/some/path", req.URL.Path)
-	assert.Exactly(t, "key0=val0&key1=val1", req.URL.RawQuery)
-
-	exp := map[string][]string{
-		"Authorization": {"Bearer token"},
-	}
-	assert.Exactly(t, http.Header(exp), req.Header)
-
-	b, _ := ioutil.ReadAll(req.Body)
-	assert.Exactly(t, `{"key2": "val2"}`, string(b))
-}
-
-func Test_Golden_assert_http_request(t *testing.T) {
-	// --- When ---
-	gld := New(t, "testdata/basic.txt")
-
-	// --- Then ---
-	gld.AssertRequest(gld.Request())
-}
-
-func Test_Golden_template(t *testing.T) {
-	// --- Given ---
-	data := map[string]string{
-		"val1":  "my_val1",
-		"val2":  "my_val2",
-		"token": "my_token",
-	}
-
-	// --- When ---
-	gld := New(t, "testdata/template.txt", TplData(data))
-
-	// --- Then ---
-	assert.Exactly(t, http.MethodPost, gld.Verb)
-	assert.True(t, gld.VerbSet)
-	assert.Exactly(t, "/some/path", gld.Path)
-	assert.True(t, gld.PathSet)
-	assert.Exactly(t, "key0=val0&key1=my_val1", gld.Query.Encode())
-	assert.True(t, gld.QuerySet)
-
-	assert.Len(t, gld.Headers, 1)
-	assert.True(t, gld.HeadersSet)
-	assert.Contains(t, gld.Headers, "Authorization")
-	assert.Exactly(t, []string{"Bearer my_token"}, gld.Headers.Values("Authorization"))
-
-	assert.Exactly(t, `{"key2": "my_val2"}`, gld.Body.String())
-}
-
-func Test_Golden_WriteTo(t *testing.T) {
-	// --- Given ---
-	buf := &bytes.Buffer{}
-	gld := New(t, "testdata/basic.txt")
-
-	// --- When ---
-	n, err := gld.WriteTo(buf)
-
-	// --- Then ---
-	require.NoError(t, err)
-	assert.Exactly(t, int64(150), n)
-
-	exp, err := ioutil.ReadFile("testdata/basic.txt")
-	require.NoError(t, err)
-	assert.Exactly(t, string(exp), buf.String()+"\n")
-}
-
-func Test_SaveRequest(t *testing.T) {
-	// --- Given ---
-	dst := t.TempDir()
-
-	gld := New(t, "testdata/basic.txt")
-	req := gld.Request()
-
-	// --- When ---
-	err := SaveRequest(dst+"/basic.txt", req, gld.Comments...)
-
-	// --- Then ---
-	require.NoError(t, err)
-
-	exp, err := ioutil.ReadFile("testdata/basic.txt")
-	require.NoError(t, err)
-	got, err := ioutil.ReadFile(dst + "/basic.txt")
-	require.NoError(t, err)
-	assert.Exactly(t, string(exp), string(append(got, []byte("\n")...)))
+	sec = gld.Section(SecBody)
+	assert.NotNil(t, sec)
+	assert.Exactly(t, `{"key2": "val2"}`, sec.String())
 }
