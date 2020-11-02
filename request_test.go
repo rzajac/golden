@@ -1,6 +1,7 @@
 package golden
 
 import (
+	"bytes"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -143,4 +144,30 @@ func Test_Request_AssertRequest_OnlyDefinedHeadersChecked(t *testing.T) {
 
 	// --- Then ---
 	mck.AssertNotCalled(t, "Fatalf")
+}
+
+func Test_SaveRequest(t *testing.T) {
+	// --- Given ---
+	body := bytes.NewReader([]byte("{\n    \"key2\": \"val2\"\n}\n"))
+	req := httptest.NewRequest(http.MethodPost, "/some/path", body)
+	req.URL.RawQuery = "key0=val0&key1=val1"
+	req.Header.Add("Authorization", "Bearer token")
+	req.Header.Add("Custom-Header", "custom data")
+
+	// --- When ---
+	buf := &bytes.Buffer{}
+	RequestSave(t, buf, req)
+
+	// --- Then ---
+	exp := `ReqMethod::POST
+ReqPath::/some/path
+ReqQuery::key0=val0&key1=val1
+Header::Authorization: Bearer token
+Header::Custom-Header: custom data
+Body::{
+    "key2": "val2"
+}
+
+`
+	assert.Exactly(t, exp, buf.String())
 }

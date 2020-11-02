@@ -145,7 +145,7 @@ func Test_Section_NewSection_Section(t *testing.T) {
 			got := sec.Section()
 
 			// --- Then ---
-			assert.Exactly(t, tc.exp, got, "test %s", tc.testN)
+			assert.Exactly(t, string(tc.exp), string(got), "test %s", tc.testN)
 		})
 	}
 }

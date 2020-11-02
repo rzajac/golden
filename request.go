@@ -33,7 +33,7 @@ func NewRequest(t T, rdr io.Reader) *Request {
 	}
 
 	if header := req.Section(SecHeader); header != nil {
-		req.header = parseHeaders(req.t, header.lines...)
+		req.header = lines2Headers(req.t, header.lines...)
 	} else {
 		req.header = make(http.Header)
 	}
@@ -103,8 +103,55 @@ func (req *Request) Request() *http.Request {
 	}
 
 	if header := req.Section(SecHeader); header != nil {
-		httpReq.Header = parseHeaders(req.t, header.lines...)
+		httpReq.Header = lines2Headers(req.t, header.lines...)
 	}
 
 	return httpReq
+}
+
+// RequestSave saves request as golden file.
+func RequestSave(t T, w io.Writer, req *http.Request) {
+	gld := &Golden{
+		sections: make([]*Section, 0, 5),
+		t:        nil,
+	}
+
+	method := &Section{
+		id:    SecReqMethod,
+		lines: []string{req.Method},
+		mod:   "",
+	}
+	gld.sections = append(gld.sections, method)
+
+	path := &Section{
+		id:    SecReqPath,
+		lines: []string{req.URL.Path},
+		mod:   "",
+	}
+	gld.sections = append(gld.sections, path)
+
+	query := &Section{
+		id:    SecReqQuery,
+		lines: []string{req.URL.RawQuery},
+		mod:   "",
+	}
+	gld.sections = append(gld.sections, query)
+
+	header := &Section{
+		id:    SecHeader,
+		lines: headers2Lines(t, req.Header),
+		mod:   "",
+	}
+	gld.sections = append(gld.sections, header)
+
+	body := &Section{
+		id:    SecBody,
+		lines: body2Lines(t, req),
+		mod:   "",
+	}
+	gld.sections = append(gld.sections, body)
+
+	if _, err := gld.WriteTo(w); err != nil {
+		t.Fatal(err)
+	}
 }

@@ -78,6 +78,19 @@ func (gld *Golden) SectionCount() int {
 	return len(gld.sections)
 }
 
+// WriteTo implements io.WriteTo interface.
+func (gld *Golden) WriteTo(w io.Writer) (int64, error) {
+	var total int64
+	for _, sec := range gld.sections {
+		n, err := sec.WriteTo(w)
+		total += n
+		if err != nil {
+			return total, err
+		}
+	}
+	return total, nil
+}
+
 // parse parses reader r representing golden file.
 func parse(r io.Reader) ([]*Section, error) {
 	scn := bufio.NewScanner(r)
@@ -87,11 +100,6 @@ func parse(r io.Reader) ([]*Section, error) {
 	var sections []*Section
 	for scn.Scan() {
 		line := scn.Text()
-
-		// Skip empty lines unless reading body section.
-		if last != nil && line == "" && last.ID() != SecBody {
-			continue
-		}
 
 		sec := NewSection(line)
 		if sec != nil {

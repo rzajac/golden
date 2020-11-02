@@ -65,8 +65,34 @@ func (sec *Section) LineCnt() int {
 // Section returns section as a slice of bytes with additional new line
 // character for the last line.
 func (sec *Section) Section() []byte {
-	out := sec.ID() + sec.mod + Delimiter + strings.Join(sec.lines, "\n") + "\n"
-	return []byte(out)
+	delimiter := Delimiter
+	if sec.id == SecComment {
+		delimiter = ""
+	}
+	if len(sec.lines) == 0 {
+		return []byte(sec.ID() + sec.mod + delimiter + "\n")
+	}
+
+	out := &strings.Builder{}
+	out.WriteString(sec.ID() + sec.mod + delimiter)
+	for i, line := range sec.lines {
+		if i == 0 {
+			out.WriteString(line + "\n")
+			continue
+		}
+		switch {
+		case sec.mod == ModMerge || sec.id == SecBody:
+			out.WriteString(line + "\n")
+		default:
+			if line == "" {
+				out.WriteString("\n")
+			} else {
+				out.WriteString(sec.ID() + sec.mod + delimiter + line + "\n")
+			}
+		}
+	}
+
+	return []byte(out.String())
 }
 
 // String implements fmt.Stringr interface and returns section as it was
