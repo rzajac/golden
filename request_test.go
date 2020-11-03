@@ -161,3 +161,21 @@ func Test_Request_UnmarshallJSONBody(t *testing.T) {
 	require.Contains(t, m, "key2")
 	assert.Exactly(t, "val2", m["key2"])
 }
+
+func Test_Request_BindQuery(t *testing.T) {
+	// --- Given ---
+	gld := RequestResponse(t, Open(t, "testdata/request.yaml"))
+
+	type T1 struct {
+		Key0 string `form:"key0"`
+		Key1 string `form:"key1"`
+	}
+
+	// --- When ---
+	t1 := &T1{}
+	gld.Request.BindQuery("form", t1)
+
+	// --- Then ---
+	assert.Exactly(t, "val0", t1.Key0)
+	assert.Exactly(t, "val1", t1.Key1)
+}

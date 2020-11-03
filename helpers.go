@@ -8,9 +8,12 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/textproto"
+	"net/url"
 	"reflect"
 	"strings"
 	"text/template"
+
+	"github.com/gorilla/schema"
 )
 
 // Open opens golden file.
@@ -55,6 +58,18 @@ func Headers2Lines(t T, hs http.Header) []string {
 	return lns
 }
 
+// JSONBytesEqual compares the JSON in two byte slices.
+func JSONBytesEqual(t T, a, b []byte) bool {
+	var ja, jb interface{}
+	if err := json.Unmarshal(a, &ja); err != nil {
+		t.Fatal(err)
+	}
+	if err := json.Unmarshal(b, &jb); err != nil {
+		t.Fatal(err)
+	}
+	return reflect.DeepEqual(jb, ja)
+}
+
 // Map is a helper type for constructing template values.
 type Map map[string]interface{}
 
@@ -93,14 +108,15 @@ func readBody(t T, rc io.ReadCloser) ([]byte, io.ReadCloser) {
 	return []byte(strings.Join(lns, "\n")), ioutil.NopCloser(buf)
 }
 
-// JSONBytesEqual compares the JSON in two byte slices.
-func JSONBytesEqual(t T, a, b []byte) bool {
-	var ja, jb interface{}
-	if err := json.Unmarshal(a, &ja); err != nil {
+// bindQuery binds HTTP query to v.
+func bindQuery(t T, query, tag string, v interface{}) {
+	vs, err := url.ParseQuery(query)
+	if err != nil {
 		t.Fatal(err)
 	}
-	if err := json.Unmarshal(b, &jb); err != nil {
+	dec := schema.NewDecoder()
+	dec.SetAliasTag(tag)
+	if err := dec.Decode(v, vs); err != nil {
 		t.Fatal(err)
 	}
-	return reflect.DeepEqual(jb, ja)
 }

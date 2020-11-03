@@ -117,3 +117,8 @@ func (req *Request) UnmarshallJSONBody(v interface{}) {
 	}
 	req.t.Fatal(errors.New("golden file does not have body"))
 }
+
+// BindQuery binds request query parameters to v.
+func (req *Request) BindQuery(tag string, v interface{}) {
+	bindQuery(req.t, req.Query, tag, v)
+}
