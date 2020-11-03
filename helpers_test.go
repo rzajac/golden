@@ -70,13 +70,13 @@ func Test_helpers_readBody(t *testing.T) {
 	)
 
 	// --- When ---
-	got := readBody(t, req)
+	got, rc := readBody(t, req.Body)
 
 	// --- Then ---
 	assert.Exactly(t, body, got)
 
 	// Make sure you can still read form the request body.
-	reqBody, _ := ioutil.ReadAll(req.Body)
+	reqBody, _ := ioutil.ReadAll(rc)
 	assert.Exactly(t, body, string(reqBody))
 }
 

@@ -1,5 +1,5 @@
 response:
-    code: 200
+    statusCode: 200
     headers:
         - 'Authorization: Bearer token'
         - 'Content-Type: application/json'

@@ -12,7 +12,7 @@ import (
 	"github.com/rzajac/golden/goldentest"
 )
 
-func Test_Request_AssertRequest(t *testing.T) {
+func Test_Request_Assert(t *testing.T) {
 	// --- Given ---
 	req := httptest.NewRequest(
 		http.MethodPost,
@@ -27,10 +27,10 @@ func Test_Request_AssertRequest(t *testing.T) {
 	gld := RequestResponse(t, Open(t, "testdata/request.yaml"))
 
 	// --- Then ---
-	gld.Request.AssertRequest(req)
+	gld.Request.Assert(req)
 }
 
-func Test_Request_AssertRequest_MethodDoesNotMatch(t *testing.T) {
+func Test_Request_Assert_MethodDoesNotMatch(t *testing.T) {
 	// --- Given ---
 	mck := &goldentest.TMock{}
 	mck.On("Helper")
@@ -42,10 +42,10 @@ func Test_Request_AssertRequest_MethodDoesNotMatch(t *testing.T) {
 	gld := RequestResponse(mck, Open(mck, "testdata/request.yaml"))
 
 	// --- Then ---
-	gld.Request.AssertRequest(req)
+	gld.Request.Assert(req)
 }
 
-func Test_Request_AssertRequest_PathDoesNotMatch(t *testing.T) {
+func Test_Request_Assert_PathDoesNotMatch(t *testing.T) {
 	// --- Given ---
 	mck := &goldentest.TMock{}
 	mck.On("Helper")
@@ -62,10 +62,10 @@ func Test_Request_AssertRequest_PathDoesNotMatch(t *testing.T) {
 	gld := RequestResponse(mck, Open(mck, "testdata/request.yaml"))
 
 	// --- Then ---
-	gld.Request.AssertRequest(req)
+	gld.Request.Assert(req)
 }
 
-func Test_Request_AssertRequest_QueryDoesNotMatch(t *testing.T) {
+func Test_Request_Assert_QueryDoesNotMatch(t *testing.T) {
 	// --- Given ---
 	mck := &goldentest.TMock{}
 	mck.On("Helper")
@@ -83,10 +83,10 @@ func Test_Request_AssertRequest_QueryDoesNotMatch(t *testing.T) {
 	gld := RequestResponse(mck, Open(mck, "testdata/request.yaml"))
 
 	// --- Then ---
-	gld.Request.AssertRequest(req)
+	gld.Request.Assert(req)
 }
 
-func Test_Request_AssertRequest_HeaderDoesNotMatch(t *testing.T) {
+func Test_Request_Assert_HeaderDoesNotMatch(t *testing.T) {
 	// --- Given ---
 	mck := &goldentest.TMock{}
 	mck.On("Helper")
@@ -106,10 +106,10 @@ func Test_Request_AssertRequest_HeaderDoesNotMatch(t *testing.T) {
 	gld := RequestResponse(mck, Open(mck, "testdata/request.yaml"))
 
 	// --- Then ---
-	gld.Request.AssertRequest(req)
+	gld.Request.Assert(req)
 }
 
-func Test_Request_AssertRequest_OnlyDefinedHeadersChecked(t *testing.T) {
+func Test_Request_Assert_OnlyDefinedHeadersChecked(t *testing.T) {
 	// --- Given ---
 	mck := &goldentest.TMock{}
 	mck.On("Helper")
@@ -125,7 +125,7 @@ func Test_Request_AssertRequest_OnlyDefinedHeadersChecked(t *testing.T) {
 	gld := RequestResponse(mck, Open(mck, "testdata/request.yaml"))
 
 	// --- Then ---
-	gld.Request.AssertRequest(req)
+	gld.Request.Assert(req)
 }
 
 func Test_Request_Request(t *testing.T) {

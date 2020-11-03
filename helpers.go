@@ -73,20 +73,20 @@ func lines2Headers(t T, lines ...string) http.Header {
 	return http.Header(hs)
 }
 
-// readBody reads http.Request body as string in non destructive way.
-func readBody(t T, req *http.Request) string {
+// readBody reads all from rc and returns read data as a string and
+// io.ReadCloser with the same data so it can be used to "reset" body of
+// a http.Request or http.Response.
+func readBody(t T, rc io.ReadCloser) (string, io.ReadCloser) {
 	buf := &bytes.Buffer{}
-	tee := io.TeeReader(req.Body, buf)
+	tee := io.TeeReader(rc, buf)
 	data, err := ioutil.ReadAll(tee)
 	if err != nil {
 		t.Fatal(err)
 	}
-	req.Body.Close()
-	req.Body = ioutil.NopCloser(buf)
-
+	rc.Close()
 	lns := strings.Split(string(data), "\n")
 	for i := range lns {
 		lns[i] = strings.TrimRight(lns[i], "\r")
 	}
-	return strings.Join(lns, "\n")
+	return strings.Join(lns, "\n"), ioutil.NopCloser(buf)
 }

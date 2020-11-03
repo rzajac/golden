@@ -35,7 +35,7 @@ func Test_RequestResponse_response(t *testing.T) {
 	// --- Then ---
 	require.Nil(t, gld.Request)
 	assert.NotNil(t, gld.Response)
-	assert.Exactly(t, 200, gld.Response.Code)
+	assert.Exactly(t, 200, gld.Response.StatusCode)
 
 	exp := []string{
 		"Authorization: Bearer token",
@@ -66,7 +66,7 @@ func Test_RequestResponse_request_response(t *testing.T) {
 	assert.Exactly(t, "{\n  \"key2\": \"val2\"\n}\n", gld.Request.Body)
 
 	// Response
-	assert.Exactly(t, 200, gld.Response.Code)
+	assert.Exactly(t, 200, gld.Response.StatusCode)
 
 	exp = []string{
 		"Content-Type: application/json",
@@ -110,7 +110,7 @@ func Test_RequestResponse_WriteTo(t *testing.T) {
 
 	// --- Then ---
 	assert.NoError(t, err)
-	assert.Exactly(t, int64(351), n)
+	assert.Exactly(t, int64(357), n)
 
 	exp, err := ioutil.ReadFile("testdata/request_response.yaml")
 	assert.NoError(t, err)

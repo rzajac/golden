@@ -38,11 +38,8 @@ func (req *Request) Validate() {
 	}
 }
 
-// AssertRequest asserts request matches the golden file.
-// Only the sections that were set are asserted and only the
-// headers set in the golden file - in another words request may have
-// more headers then the golden file.
-func (req *Request) AssertRequest(got *http.Request) {
+// Assert asserts request matches the golden file.
+func (req *Request) Assert(got *http.Request) {
 	req.t.Helper()
 
 	if req.Method != got.Method {
@@ -74,7 +71,8 @@ func (req *Request) AssertRequest(got *http.Request) {
 		}
 	}
 
-	body := readBody(req.t, got)
+	body, rc := readBody(req.t, got.Body)
+	defer func() { got.Body = rc }()
 	if req.Body != body {
 		req.t.Fatalf(
 			"expected request body to match want\n %s\ngot\n%s",
