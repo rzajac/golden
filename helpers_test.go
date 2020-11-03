@@ -79,3 +79,15 @@ func Test_helpers_readBody(t *testing.T) {
 	reqBody, _ := ioutil.ReadAll(req.Body)
 	assert.Exactly(t, body, string(reqBody))
 }
+
+func Test_helpers_Map(t *testing.T) {
+	// --- When ---
+	data := make(Map).Add("key1", "val1").Add("key2", 2)
+
+	// --- Then ---
+	exp := map[string]interface{}{
+		"key1": "val1",
+		"key2": 2,
+	}
+	assert.Exactly(t, exp, map[string]interface{}(data))
+}

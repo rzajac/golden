@@ -53,6 +53,15 @@ func Headers2Lines(t T, hs http.Header) []string {
 	return lns
 }
 
+// Map is a helper type for constructing template values.
+type Map map[string]interface{}
+
+// Add adds key and val to map and returns map for chaining.
+func (m Map) Add(key string, val interface{}) Map {
+	m[key] = val
+	return m
+}
+
 // lines2Headers creates http.Header from header lines.
 func lines2Headers(t T, lines ...string) http.Header {
 	rdr := strings.NewReader(strings.Join(lines, "\r\n") + "\r\n\r\n")
