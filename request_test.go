@@ -17,7 +17,7 @@ func Test_Request_Assert(t *testing.T) {
 	req := httptest.NewRequest(
 		http.MethodPost,
 		"/some/path",
-		strings.NewReader("{\n  \"key2\": \"val2\"\n}\n"),
+		strings.NewReader(`{"key2":"val2"}`),
 	)
 	req.Header.Add("Authorization", "Bearer token")
 	req.Header.Add("Content-Type", "application/json")
@@ -114,7 +114,7 @@ func Test_Request_Assert_OnlyDefinedHeadersChecked(t *testing.T) {
 	mck := &goldentest.TMock{}
 	mck.On("Helper")
 
-	body := strings.NewReader("{\n  \"key2\": \"val2\"\n}\n")
+	body := strings.NewReader(`{"key2":"val2"}`)
 	req := httptest.NewRequest(http.MethodPost, "/some/path", body)
 	req.URL.RawQuery = "key0=val0&key1=val1"
 	req.Header.Add("Authorization", "Bearer token")

@@ -5,6 +5,7 @@ request:
     headers:
         - 'Authorization: Bearer token'
         - 'Content-Type: application/json'
+    jsonBody: true
     body: |
         {
           "key2": "val2"
@@ -13,5 +14,6 @@ response:
     statusCode: 200
     headers:
         - 'Content-Type: application/json'
+    jsonBody: true
     body: |
         { "success": true }

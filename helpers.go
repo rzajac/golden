@@ -3,10 +3,12 @@ package golden
 import (
 	"bufio"
 	"bytes"
+	"encoding/json"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"net/textproto"
+	"reflect"
 	"strings"
 	"text/template"
 )
@@ -73,10 +75,10 @@ func lines2Headers(t T, lines ...string) http.Header {
 	return http.Header(hs)
 }
 
-// readBody reads all from rc and returns read data as a string and
-// io.ReadCloser with the same data so it can be used to "reset" body of
+// readBody reads all from rc and returns read data and io.ReadCloser
+// with the same data so it can be used to "reset" body of
 // a http.Request or http.Response.
-func readBody(t T, rc io.ReadCloser) (string, io.ReadCloser) {
+func readBody(t T, rc io.ReadCloser) ([]byte, io.ReadCloser) {
 	buf := &bytes.Buffer{}
 	tee := io.TeeReader(rc, buf)
 	data, err := ioutil.ReadAll(tee)
@@ -88,5 +90,17 @@ func readBody(t T, rc io.ReadCloser) (string, io.ReadCloser) {
 	for i := range lns {
 		lns[i] = strings.TrimRight(lns[i], "\r")
 	}
-	return strings.Join(lns, "\n"), ioutil.NopCloser(buf)
+	return []byte(strings.Join(lns, "\n")), ioutil.NopCloser(buf)
+}
+
+// JSONBytesEqual compares the JSON in two byte slices.
+func JSONBytesEqual(t T, a, b []byte) bool {
+	var ja, jb interface{}
+	if err := json.Unmarshal(a, &ja); err != nil {
+		t.Fatal(err)
+	}
+	if err := json.Unmarshal(b, &jb); err != nil {
+		t.Fatal(err)
+	}
+	return reflect.DeepEqual(jb, ja)
 }

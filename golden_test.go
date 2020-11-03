@@ -2,7 +2,6 @@ package golden
 
 import (
 	"bytes"
-	"io/ioutil"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -110,9 +109,28 @@ func Test_RequestResponse_WriteTo(t *testing.T) {
 
 	// --- Then ---
 	assert.NoError(t, err)
-	assert.Exactly(t, int64(357), n)
+	assert.Exactly(t, int64(395), n)
 
-	exp, err := ioutil.ReadFile("testdata/request_response.yaml")
-	assert.NoError(t, err)
-	assert.Exactly(t, string(exp), dst.String())
+	got := RequestResponse(t, dst.Bytes())
+
+	// Request
+	assert.Exactly(t, "POST", got.Request.Method)
+	assert.Exactly(t, "/some/path", got.Request.Path)
+	assert.Exactly(t, "key0=val0&key1=val1", got.Request.Query)
+
+	exp := []string{
+		"Authorization: Bearer token",
+		"Content-Type: application/json",
+	}
+	assert.Exactly(t, exp, got.Request.Headers)
+	assert.Exactly(t, "{\n  \"key2\": \"val2\"\n}\n", got.Request.Body)
+
+	// Response
+	assert.Exactly(t, 200, got.Response.StatusCode)
+
+	exp = []string{
+		"Content-Type: application/json",
+	}
+	assert.Exactly(t, exp, got.Response.Headers)
+	assert.Exactly(t, "{ \"success\": true }\n", got.Response.Body)
 }

@@ -12,6 +12,7 @@ type Response struct {
 	StatusCode int      `yaml:"statusCode"`
 	Headers    []string `yaml:"headers"`
 	Body       string   `yaml:"body"`
+	JSONBody   bool     `yaml:"jsonBody"`
 
 	headers http.Header // Request headers.
 	t       T           // Test manager.
@@ -59,7 +60,15 @@ func (rsp *Response) Assert(got *http.Response) {
 
 	body, rc := readBody(rsp.t, got.Body)
 	defer func() { got.Body = rc }()
-	if rsp.Body != body {
+
+	var equal bool
+	if rsp.JSONBody {
+		equal = JSONBytesEqual(rsp.t, []byte(rsp.Body), body)
+	} else {
+		equal = rsp.Body == string(body)
+	}
+
+	if !equal {
 		rsp.t.Fatalf(
 			"expected response body to match want\n %s\ngot\n%s",
 			rsp.Body,

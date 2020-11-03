@@ -11,11 +11,12 @@ import (
 
 // Request represents HTTP request backed by a golden file.
 type Request struct {
-	Method  string   `yaml:"method"`
-	Path    string   `yaml:"path"`
-	Query   string   `yaml:"query"`
-	Headers []string `yaml:"headers"`
-	Body    string   `yaml:"body"`
+	Method   string   `yaml:"method"`
+	Path     string   `yaml:"path"`
+	Query    string   `yaml:"query"`
+	Headers  []string `yaml:"headers"`
+	Body     string   `yaml:"body"`
+	JSONBody bool     `yaml:"jsonBody"`
 
 	headers http.Header // Request headers.
 	t       T           // Test manager.
@@ -73,7 +74,15 @@ func (req *Request) Assert(got *http.Request) {
 
 	body, rc := readBody(req.t, got.Body)
 	defer func() { got.Body = rc }()
-	if req.Body != body {
+
+	var equal bool
+	if req.JSONBody {
+		equal = JSONBytesEqual(req.t, []byte(req.Body), body)
+	} else {
+		equal = req.Body == string(body)
+	}
+
+	if !equal {
 		req.t.Fatalf(
 			"expected request body to match want\n %s\ngot\n%s",
 			req.Body,

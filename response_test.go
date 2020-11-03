@@ -14,7 +14,7 @@ import (
 
 func Test_Response_Assert(t *testing.T) {
 	// --- Given ---
-	body := "{ \"key2\": \"val2\" }\n"
+	body := `{"key2":"val2"}`
 	rsp := &http.Response{
 		Header: make(http.Header),
 	}
@@ -42,7 +42,7 @@ func Test_Response_Assert_HeaderDoesNotMatch(t *testing.T) {
 		[]string{"Bearer token 2"},
 	)
 
-	body := "{ \"key2\": \"val2\" }\n"
+	body := `{"key2":"val2"}`
 	rsp := &http.Response{
 		Header: make(http.Header),
 	}
@@ -63,7 +63,7 @@ func Test_Response_Assert_OnlyDefinedHeadersChecked(t *testing.T) {
 	mck := &goldentest.TMock{}
 	mck.On("Helper")
 
-	body := "{ \"key2\": \"val2\" }\n"
+	body := `{"key2":"val2"}`
 	rsp := &http.Response{
 		Header: make(http.Header),
 	}
