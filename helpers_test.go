@@ -1,16 +1,16 @@
 package golden
 
 import (
-	"bytes"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_Helpers_Headers2Lines(t *testing.T) {
+func Test_helpers_Headers2Lines(t *testing.T) {
 	// --- Given ---
 	hs := http.Header{}
 	hs.Add("Authorization", "Bearer token")
@@ -27,7 +27,7 @@ func Test_Helpers_Headers2Lines(t *testing.T) {
 	assert.Exactly(t, "Custom-Header: val1", lns[2])
 }
 
-func Test_Helpers_Headers2Lines_emptyHeaders(t *testing.T) {
+func Test_helpers_Headers2Lines_emptyHeaders(t *testing.T) {
 	// --- Given ---
 	hs := http.Header{}
 
@@ -38,7 +38,7 @@ func Test_Helpers_Headers2Lines_emptyHeaders(t *testing.T) {
 	assert.Len(t, lns, 0)
 }
 
-func Test_Helpers_lines2Headers(t *testing.T) {
+func Test_helpers_lines2Headers(t *testing.T) {
 	// --- Given ---
 	lns := []string{
 		"Authorization: Bearer token",
@@ -60,20 +60,22 @@ func Test_Helpers_lines2Headers(t *testing.T) {
 	assert.Exactly(t, "val1", hs.Values("Custom-Header")[1])
 }
 
-func Test_Helpers_body2Lines(t *testing.T) {
+func Test_helpers_readBody(t *testing.T) {
 	// --- Given ---
-	content := []byte("{\n    \"key2\": \"val2\"\n}\n")
-	body := bytes.NewReader(content)
-	req := httptest.NewRequest(http.MethodPost, "/some/path", body)
+	body := "{\n    \"key2\": \"val2\"\n}\n"
+	req := httptest.NewRequest(
+		http.MethodPost,
+		"/some/path",
+		strings.NewReader(body),
+	)
 
 	// --- When ---
-	lns := body2Lines(t, req)
+	got := readBody(t, req)
 
 	// --- Then ---
-	exp := []string{"{", "    \"key2\": \"val2\"", "}", ""}
-	assert.Exactly(t, exp, lns)
+	assert.Exactly(t, body, got)
 
 	// Make sure you can still read form the request body.
-	got, _ := ioutil.ReadAll(req.Body)
-	assert.Exactly(t, string(content), string(got))
+	reqBody, _ := ioutil.ReadAll(req.Body)
+	assert.Exactly(t, body, string(reqBody))
 }

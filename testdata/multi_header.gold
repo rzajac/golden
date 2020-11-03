@@ -1,4 +1,0 @@
-# Comment line 0.
-
-Header::Authorization: Bearer token
-Header::Content-Type: application/json

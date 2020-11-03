@@ -1,53 +1,33 @@
 package golden
 
 import (
-	"bytes"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/rzajac/golden/goldentest"
 )
 
-func Test_Request_Request(t *testing.T) {
-	// --- Given ---
-	req := NewRequest(t, Open(t, "testdata/request_basic.gold"))
-
-	// --- When ---
-	httpReq := req.Request()
-
-	// --- Then ---
-	assert.Exactly(t, http.MethodPost, httpReq.Method)
-	assert.Exactly(t, "/some/path", httpReq.URL.Path)
-	assert.Exactly(t, "key0=val0&key1=val1", httpReq.URL.RawQuery)
-
-	exp := map[string][]string{
-		"Authorization": {"Bearer token"},
-	}
-	assert.Exactly(t, http.Header(exp), httpReq.Header)
-
-	b, _ := ioutil.ReadAll(httpReq.Body)
-	assert.Exactly(t, `{"key2": "val2"}`, string(b))
-}
-
 func Test_Request_AssertRequest(t *testing.T) {
 	// --- Given ---
-	body := `{"key2": "val2"}`
 	req := httptest.NewRequest(
 		http.MethodPost,
 		"/some/path",
-		strings.NewReader(body),
+		strings.NewReader("{\n  \"key2\": \"val2\"\n}\n"),
 	)
 	req.Header.Add("Authorization", "Bearer token")
-	req.Header.Add("Host", "localhost")
+	req.Header.Add("Content-Type", "application/json")
 	req.URL.RawQuery = "key0=val0&key1=val1"
 
+	// --- When ---
+	gld := RequestResponse(t, Open(t, "testdata/request.yaml"))
+
 	// --- Then ---
-	NewRequest(t, Open(t, "testdata/request_basic.gold")).AssertRequest(req)
+	gld.Request.AssertRequest(req)
 }
 
 func Test_Request_AssertRequest_MethodDoesNotMatch(t *testing.T) {
@@ -59,10 +39,10 @@ func Test_Request_AssertRequest_MethodDoesNotMatch(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/some/path", nil)
 
 	// --- When ---
-	NewRequest(mck, Open(mck, "testdata/request_basic.gold")).AssertRequest(req)
+	gld := RequestResponse(mck, Open(mck, "testdata/request.yaml"))
 
 	// --- Then ---
-	mck.AssertExpectations(t)
+	gld.Request.AssertRequest(req)
 }
 
 func Test_Request_AssertRequest_PathDoesNotMatch(t *testing.T) {
@@ -79,10 +59,10 @@ func Test_Request_AssertRequest_PathDoesNotMatch(t *testing.T) {
 	req := httptest.NewRequest(http.MethodPost, "/other/path", nil)
 
 	// --- When ---
-	NewRequest(mck, Open(mck, "testdata/request_basic.gold")).AssertRequest(req)
+	gld := RequestResponse(mck, Open(mck, "testdata/request.yaml"))
 
 	// --- Then ---
-	mck.AssertExpectations(t)
+	gld.Request.AssertRequest(req)
 }
 
 func Test_Request_AssertRequest_QueryDoesNotMatch(t *testing.T) {
@@ -100,10 +80,10 @@ func Test_Request_AssertRequest_QueryDoesNotMatch(t *testing.T) {
 	req.URL.RawQuery = "key0=val0"
 
 	// --- When ---
-	NewRequest(mck, Open(mck, "testdata/request_basic.gold")).AssertRequest(req)
+	gld := RequestResponse(mck, Open(mck, "testdata/request.yaml"))
 
 	// --- Then ---
-	mck.AssertExpectations(t)
+	gld.Request.AssertRequest(req)
 }
 
 func Test_Request_AssertRequest_HeaderDoesNotMatch(t *testing.T) {
@@ -123,10 +103,10 @@ func Test_Request_AssertRequest_HeaderDoesNotMatch(t *testing.T) {
 	req.Header.Add("Authorization", "Bearer token2")
 
 	// --- When ---
-	NewRequest(mck, Open(mck, "testdata/request_basic.gold")).AssertRequest(req)
+	gld := RequestResponse(mck, Open(mck, "testdata/request.yaml"))
 
 	// --- Then ---
-	mck.AssertExpectations(t)
+	gld.Request.AssertRequest(req)
 }
 
 func Test_Request_AssertRequest_OnlyDefinedHeadersChecked(t *testing.T) {
@@ -134,40 +114,50 @@ func Test_Request_AssertRequest_OnlyDefinedHeadersChecked(t *testing.T) {
 	mck := &goldentest.TMock{}
 	mck.On("Helper")
 
-	req := httptest.NewRequest(http.MethodPost, "/some/path", nil)
-	req.URL.RawQuery = "key0=val0&key1=val1"
-	req.Header.Add("Authorization", "Bearer token")
-	req.Header.Add("Custom-Header", "custom data")
-
-	// --- When ---
-	NewRequest(mck, Open(mck, "testdata/request_basic.gold")).AssertRequest(req)
-
-	// --- Then ---
-	mck.AssertNotCalled(t, "Fatalf")
-}
-
-func Test_SaveRequest(t *testing.T) {
-	// --- Given ---
-	body := bytes.NewReader([]byte("{\n    \"key2\": \"val2\"\n}\n"))
+	body := strings.NewReader("{\n  \"key2\": \"val2\"\n}\n")
 	req := httptest.NewRequest(http.MethodPost, "/some/path", body)
 	req.URL.RawQuery = "key0=val0&key1=val1"
 	req.Header.Add("Authorization", "Bearer token")
+	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("Custom-Header", "custom data")
 
 	// --- When ---
-	buf := &bytes.Buffer{}
-	RequestSave(t, buf, req)
+	gld := RequestResponse(mck, Open(mck, "testdata/request.yaml"))
 
 	// --- Then ---
-	exp := `ReqMethod::POST
-ReqPath::/some/path
-ReqQuery::key0=val0&key1=val1
-Header::Authorization: Bearer token
-Header::Custom-Header: custom data
-Body::{
-    "key2": "val2"
+	gld.Request.AssertRequest(req)
 }
 
-`
-	assert.Exactly(t, exp, buf.String())
+func Test_Request_Request(t *testing.T) {
+	// --- Given ---
+	gld := RequestResponse(t, Open(t, "testdata/request.yaml"))
+
+	// --- When ---
+	got := gld.Request.Request()
+
+	// --- Then ---
+	assert.Exactly(t, http.MethodPost, got.Method)
+	assert.Exactly(t, "/some/path", got.URL.Path)
+	assert.Exactly(t, "key0=val0&key1=val1", got.URL.RawQuery)
+	require.Len(t, got.Header, 2)
+	require.Contains(t, got.Header, "Authorization")
+	require.Contains(t, got.Header, "Content-Type")
+	require.Len(t, got.Header.Values("Authorization"), 1)
+	require.Len(t, got.Header.Values("Content-Type"), 1)
+	assert.Exactly(t, "Bearer token", got.Header.Values("Authorization")[0])
+	assert.Exactly(t, "application/json", got.Header.Values("Content-Type")[0])
+}
+
+func Test_Request_UnmarshallJSONBody(t *testing.T) {
+	// --- Given ---
+	gld := RequestResponse(t, Open(t, "testdata/request.yaml"))
+
+	// --- When ---
+	m := make(map[string]string, 1)
+	gld.Request.UnmarshallJSONBody(&m)
+
+	// --- Then ---
+	require.Len(t, m, 1)
+	require.Contains(t, m, "key2")
+	assert.Exactly(t, "val2", m["key2"])
 }

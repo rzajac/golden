@@ -12,16 +12,16 @@ import (
 )
 
 // Open opens golden file.
-func Open(t T, pth string) io.Reader {
-	content, err := ioutil.ReadFile(pth)
+func Open(t T, pth string) []byte {
+	data, err := ioutil.ReadFile(pth)
 	if err != nil {
 		t.Fatal(err)
 	}
-	return bytes.NewReader(content)
+	return data
 }
 
 // OpenTpl opens golden file template and renders it with data.
-func OpenTpl(t T, pth string, data interface{}) io.Reader {
+func OpenTpl(t T, pth string, data interface{}) []byte {
 	content, err := ioutil.ReadFile(pth)
 	if err != nil {
 		t.Fatal(err)
@@ -37,7 +37,7 @@ func OpenTpl(t T, pth string, data interface{}) io.Reader {
 		t.Fatal(err)
 	}
 
-	return buf
+	return buf.Bytes()
 }
 
 // Headers2Lines creates lines representing http.Header.
@@ -64,8 +64,8 @@ func lines2Headers(t T, lines ...string) http.Header {
 	return http.Header(hs)
 }
 
-// body2Lines returns http.Request body as lines.
-func body2Lines(t T, req *http.Request) []string {
+// readBody reads http.Request body as string in non destructive way.
+func readBody(t T, req *http.Request) string {
 	buf := &bytes.Buffer{}
 	tee := io.TeeReader(req.Body, buf)
 	data, err := ioutil.ReadAll(tee)
@@ -79,5 +79,5 @@ func body2Lines(t T, req *http.Request) []string {
 	for i := range lns {
 		lns[i] = strings.TrimRight(lns[i], "\r")
 	}
-	return lns
+	return strings.Join(lns, "\n")
 }

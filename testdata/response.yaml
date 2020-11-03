@@ -1,0 +1,7 @@
+response:
+    code: 200
+    headers:
+        - 'Authorization: Bearer token'
+        - 'Content-Type: application/json'
+    body: |
+        { "key2": "val2" }

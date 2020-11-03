@@ -1,30 +1,9 @@
 package golden
 
 import (
-	"bufio"
-	"errors"
 	"io"
-	"strings"
-)
 
-// Delimiter between section name and the line itself.
-const Delimiter = "::"
-
-// Golden file section identifiers.
-const (
-	SecComment   = Delimiter
-	SecReqMethod = "ReqMethod"
-	SecReqPath   = "ReqPath"
-	SecReqQuery  = "ReqQuery"
-	SecRspCode   = "RspCode"
-	SecHeader    = "Header"
-	SecBody      = "Body"
-)
-
-// Parsing modifiers.
-const (
-	ModNone  = ""  // No modifiers set for given section.
-	ModMerge = "+" // Concatenate lines in the section without new lines.
+	"gopkg.in/yaml.v3"
 )
 
 // T is a subset of testing.TB interface.
@@ -41,95 +20,44 @@ type T interface {
 	Helper()
 }
 
-// Golden represents golden file.
-type Golden struct {
-	sections []*Section // Golden file sections.
-	t        T          // Test manager.
+// golden represents HTTP request / response golden file.
+type golden struct {
+	Request  *Request  `yaml:"request"`
+	Response *Response `yaml:"response"`
+	t        T         // Test manager.
 }
 
-// NewGolden reads golden file at pth and creates new instance of Golden.
-func NewGolden(t T, rdr io.Reader) *Golden {
+// RequestResponse creates instance representing
+// HTTP request / response golden file.
+func RequestResponse(t T, data []byte) *golden {
 	t.Helper()
 
-	gld := &Golden{
-		t: t,
+	gld := &golden{}
+	if err := yaml.Unmarshal(data, gld); err != nil {
+		t.Fatal(err)
+		return nil
+	}
+	gld.t = t
+
+	if gld.Request != nil {
+		gld.Request.t = t
+		gld.Request.Validate()
 	}
 
-	var err error
-	if gld.sections, err = parse(rdr); err != nil {
-		t.Fatal(err)
+	if gld.Response != nil {
+		gld.Response.t = t
+		gld.Response.Validate()
 	}
 
 	return gld
 }
 
-// Section returns golden file section or nil if section is not present.
-func (gld *Golden) Section(id string) *Section {
-	for _, sec := range gld.sections {
-		if sec.ID() == id {
-			return sec
-		}
+// WriteTo implements io.WriteTo interface for writing golden files.
+func (gld *golden) WriteTo(w io.Writer) (int64, error) {
+	data, err := yaml.Marshal(gld)
+	if err != nil {
+		return 0, err
 	}
-	return nil
+	n, err := w.Write(data)
+	return int64(n), err
 }
-
-// SectionCount returns number of sections in the golden file.
-func (gld *Golden) SectionCount() int {
-	return len(gld.sections)
-}
-
-// WriteTo implements io.WriteTo interface.
-func (gld *Golden) WriteTo(w io.Writer) (int64, error) {
-	var total int64
-	for _, sec := range gld.sections {
-		n, err := sec.WriteTo(w)
-		total += n
-		if err != nil {
-			return total, err
-		}
-	}
-	return total, nil
-}
-
-// parse parses reader r representing golden file.
-func parse(r io.Reader) ([]*Section, error) {
-	scn := bufio.NewScanner(r)
-
-	header := true
-	var last *Section
-	var sections []*Section
-	for scn.Scan() {
-		line := scn.Text()
-
-		sec := NewSection(line)
-		if sec != nil {
-			if sec.ID() == SecComment && !header {
-				return nil, errors.New("did not expect comment")
-			}
-			header = sec.ID() == SecComment
-
-			if last != nil && last.ID() == sec.ID() {
-				last.Add(line)
-				continue
-			}
-
-			sections = append(sections, sec)
-			last = sec
-			continue
-		}
-
-		// Add line to last seen section.
-		if last != nil {
-			last.Add(line)
-		}
-	}
-
-	if err := scn.Err(); err != nil {
-		return nil, err
-	}
-
-	return sections, nil
-}
-
-// isComment returns true if line is a comment.
-func isComment(line string) bool { return strings.HasPrefix(line, Delimiter) }
