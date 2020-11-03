@@ -5,7 +5,7 @@ request:
     headers:
         - 'Authorization: Bearer token'
         - 'Content-Type: application/json'
-    jsonBody: true
+    bodyType: json
     body: |
         {
           "key2": "val2"

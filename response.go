@@ -12,7 +12,7 @@ type Response struct {
 	StatusCode int      `yaml:"statusCode"`
 	Headers    []string `yaml:"headers"`
 	Body       string   `yaml:"body"`
-	JSONBody   bool     `yaml:"jsonBody"`
+	BodyType   string   `yaml:"bodyType"`
 
 	headers http.Header // Request headers.
 	t       T           // Test manager.
@@ -62,9 +62,10 @@ func (rsp *Response) Assert(got *http.Response) {
 	defer func() { got.Body = rc }()
 
 	var equal bool
-	if rsp.JSONBody {
+	switch rsp.BodyType {
+	case BodyJSON:
 		equal = JSONBytesEqual(rsp.t, []byte(rsp.Body), body)
-	} else {
+	default:
 		equal = rsp.Body == string(body)
 	}
 

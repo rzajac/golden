@@ -16,7 +16,7 @@ type Request struct {
 	Query    string   `yaml:"query"`
 	Headers  []string `yaml:"headers"`
 	Body     string   `yaml:"body"`
-	JSONBody bool     `yaml:"jsonBody"`
+	BodyType string   `yaml:"bodyType"`
 
 	headers http.Header // Request headers.
 	t       T           // Test manager.
@@ -76,9 +76,10 @@ func (req *Request) Assert(got *http.Request) {
 	defer func() { got.Body = rc }()
 
 	var equal bool
-	if req.JSONBody {
+	switch req.BodyType {
+	case BodyJSON:
 		equal = JSONBytesEqual(req.t, []byte(req.Body), body)
-	} else {
+	default:
 		equal = req.Body == string(body)
 	}
 

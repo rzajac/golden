@@ -6,6 +6,9 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// BodyJSON represents body type with JSON payload.
+const BodyJSON = "json"
+
 // T is a subset of testing.TB interface.
 type T interface {
 	// Fatal is equivalent to Log followed by FailNow.
