@@ -2,6 +2,7 @@ package golden
 
 import (
 	"bytes"
+	"net/http"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -15,7 +16,7 @@ func Test_RequestResponse_request(t *testing.T) {
 	// --- Then ---
 	require.NotNil(t, gld.Request)
 	assert.Nil(t, gld.Response)
-	assert.Exactly(t, "POST", gld.Request.Method)
+	assert.Exactly(t, http.MethodPost, gld.Request.Method)
 	assert.Exactly(t, "/some/path", gld.Request.Path)
 	assert.Exactly(t, "key0=val0&key1=val1", gld.Request.Query)
 
@@ -53,7 +54,7 @@ func Test_RequestResponse_request_response(t *testing.T) {
 	assert.NotNil(t, gld.Response)
 
 	// Request
-	assert.Exactly(t, "POST", gld.Request.Method)
+	assert.Exactly(t, http.MethodPost, gld.Request.Method)
 	assert.Exactly(t, "/some/path", gld.Request.Path)
 	assert.Exactly(t, "key0=val0&key1=val1", gld.Request.Query)
 
@@ -82,12 +83,12 @@ func Test_RequestResponse_template(t *testing.T) {
 	}
 
 	// --- When ---
-	gld := RequestResponse(t, OpenTpl(t, "testdata/request.tpl.yaml", data))
+	gld := RequestResponse(t, Template(t, "testdata/request.tpl.yaml", data))
 
 	// --- Then ---
 	require.NotNil(t, gld.Request)
 	assert.Nil(t, gld.Response)
-	assert.Exactly(t, "POST", gld.Request.Method)
+	assert.Exactly(t, http.MethodPost, gld.Request.Method)
 	assert.Exactly(t, "/some/path", gld.Request.Path)
 	assert.Exactly(t, "key0=val0&key1=1", gld.Request.Query)
 
@@ -114,7 +115,7 @@ func Test_RequestResponse_WriteTo(t *testing.T) {
 	got := RequestResponse(t, dst.Bytes())
 
 	// Request
-	assert.Exactly(t, "POST", got.Request.Method)
+	assert.Exactly(t, http.MethodPost, got.Request.Method)
 	assert.Exactly(t, "/some/path", got.Request.Path)
 	assert.Exactly(t, "key0=val0&key1=val1", got.Request.Query)
 

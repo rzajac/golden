@@ -22,8 +22,8 @@ func Open(t T, pth string) []byte {
 	return data
 }
 
-// OpenTpl opens golden file template and renders it with data.
-func OpenTpl(t T, pth string, data interface{}) []byte {
+// Template opens golden file template and renders it with data.
+func Template(t T, pth string, data interface{}) []byte {
 	content, err := ioutil.ReadFile(pth)
 	if err != nil {
 		t.Fatal(err)
