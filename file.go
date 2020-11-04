@@ -31,6 +31,28 @@ func File(t T, data []byte) *file {
 	return fil
 }
 
+// Assert asserts file payload matches got.
+func (fil *file) Assert(got []byte) {
+	fil.t.Helper()
+
+	var equal bool
+	switch fil.PayloadType {
+	case PayloadJSON:
+		equal = JSONBytesEqual(fil.t, []byte(fil.Payload), got)
+	default:
+		equal = fil.Payload == string(got)
+	}
+
+	if !equal {
+		fil.t.Fatalf(
+			"expected request body to match want\n %s\ngot\n%s",
+			fil.Payload,
+			string(got),
+		)
+		return
+	}
+}
+
 // WriteTo implements io.WriteTo interface for writing golden files.
 func (fil *file) WriteTo(w io.Writer) (int64, error) {
 	data, err := yaml.Marshal(fil)
