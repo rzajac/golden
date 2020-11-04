@@ -24,7 +24,7 @@ func Test_Response_Assert(t *testing.T) {
 	rsp.Body = ioutil.NopCloser(strings.NewReader(body))
 
 	// --- When ---
-	gld := RequestResponse(t, Open(t, "testdata/response.yaml"))
+	gld := Exchange(t, Open(t, "testdata/response.yaml"))
 
 	// --- Then ---
 	gld.Response.Assert(rsp)
@@ -52,7 +52,7 @@ func Test_Response_Assert_HeaderDoesNotMatch(t *testing.T) {
 	rsp.Body = ioutil.NopCloser(strings.NewReader(body))
 
 	// --- When ---
-	gld := RequestResponse(mck, Open(mck, "testdata/response.yaml"))
+	gld := Exchange(mck, Open(mck, "testdata/response.yaml"))
 
 	// --- Then ---
 	gld.Response.Assert(rsp)
@@ -74,19 +74,19 @@ func Test_Response_Assert_OnlyDefinedHeadersChecked(t *testing.T) {
 	rsp.Body = ioutil.NopCloser(strings.NewReader(body))
 
 	// --- When ---
-	gld := RequestResponse(mck, Open(mck, "testdata/response.yaml"))
+	gld := Exchange(mck, Open(mck, "testdata/response.yaml"))
 
 	// --- Then ---
 	gld.Response.Assert(rsp)
 }
 
-func Test_Response_UnmarshallJSONBody(t *testing.T) {
+func Test_Response_UnmarshallBody(t *testing.T) {
 	// --- Given ---
-	gld := RequestResponse(t, Open(t, "testdata/response.yaml"))
+	gld := Exchange(t, Open(t, "testdata/response.yaml"))
 
 	// --- When ---
 	m := make(map[string]string, 1)
-	gld.Response.UnmarshallJSONBody(&m)
+	gld.Response.UnmarshallBody(&m)
 
 	// --- Then ---
 	require.Len(t, m, 1)

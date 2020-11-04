@@ -63,7 +63,7 @@ func (rsp *Response) Assert(got *http.Response) {
 
 	var equal bool
 	switch rsp.BodyType {
-	case BodyJSON:
+	case PayloadJSON:
 		equal = JSONBytesEqual(rsp.t, []byte(rsp.Body), body)
 	default:
 		equal = rsp.Body == string(body)
@@ -79,9 +79,10 @@ func (rsp *Response) Assert(got *http.Response) {
 	}
 }
 
-// UnmarshallJSONBody unmarshalls request body to v. Calls Fatal if body
-// section does not exist or json.Unmarshal returns error.
-func (rsp *Response) UnmarshallJSONBody(v interface{}) {
+// UnmarshallBody unmarshalls response body to v based on BodyType. Calls Fatal
+// if body cannot be unmarshalled.
+func (rsp *Response) UnmarshallBody(v interface{}) {
+	rsp.t.Helper()
 	if rsp.Body != "" {
 		if err := json.Unmarshal([]byte(rsp.Body), v); err != nil {
 			rsp.t.Fatal(err)

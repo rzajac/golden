@@ -9,9 +9,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func Test_RequestResponse_request(t *testing.T) {
+func Test_Exchange_request(t *testing.T) {
 	// --- When ---
-	gld := RequestResponse(t, Open(t, "testdata/request.yaml"))
+	gld := Exchange(t, Open(t, "testdata/request.yaml"))
 
 	// --- Then ---
 	require.NotNil(t, gld.Request)
@@ -28,9 +28,9 @@ func Test_RequestResponse_request(t *testing.T) {
 	assert.Exactly(t, "{\n  \"key2\": \"val2\"\n}\n", gld.Request.Body)
 }
 
-func Test_RequestResponse_response(t *testing.T) {
+func Test_Exchange_response(t *testing.T) {
 	// --- When ---
-	gld := RequestResponse(t, Open(t, "testdata/response.yaml"))
+	gld := Exchange(t, Open(t, "testdata/response.yaml"))
 
 	// --- Then ---
 	require.Nil(t, gld.Request)
@@ -45,9 +45,9 @@ func Test_RequestResponse_response(t *testing.T) {
 	assert.Exactly(t, "{ \"key2\": \"val2\" }\n", gld.Response.Body)
 }
 
-func Test_RequestResponse_request_response(t *testing.T) {
+func Test_Exchange_request_response(t *testing.T) {
 	// --- When ---
-	gld := RequestResponse(t, Open(t, "testdata/request_response.yaml"))
+	gld := Exchange(t, Open(t, "testdata/request_response.yaml"))
 
 	// --- Then ---
 	require.NotNil(t, gld.Request)
@@ -75,7 +75,7 @@ func Test_RequestResponse_request_response(t *testing.T) {
 	assert.Exactly(t, "{ \"success\": true }\n", gld.Response.Body)
 }
 
-func Test_RequestResponse_template(t *testing.T) {
+func Test_Exchange_template(t *testing.T) {
 	// --- Given ---
 	data := map[string]interface{}{
 		"val1": 1,
@@ -83,7 +83,7 @@ func Test_RequestResponse_template(t *testing.T) {
 	}
 
 	// --- When ---
-	gld := RequestResponse(t, Template(t, "testdata/request.tpl.yaml", data))
+	gld := Exchange(t, Template(t, "testdata/request.tpl.yaml", data))
 
 	// --- Then ---
 	require.NotNil(t, gld.Request)
@@ -100,9 +100,9 @@ func Test_RequestResponse_template(t *testing.T) {
 	assert.Exactly(t, "{\n  \"key2\": \"val2\"\n}\n", gld.Request.Body)
 }
 
-func Test_RequestResponse_WriteTo(t *testing.T) {
+func Test_Exchange_WriteTo(t *testing.T) {
 	// --- Given ---
-	gld := RequestResponse(t, Open(t, "testdata/request_response.yaml"))
+	gld := Exchange(t, Open(t, "testdata/request_response.yaml"))
 	dst := &bytes.Buffer{}
 
 	// --- When ---
@@ -112,7 +112,7 @@ func Test_RequestResponse_WriteTo(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Exactly(t, int64(395), n)
 
-	got := RequestResponse(t, dst.Bytes())
+	got := Exchange(t, dst.Bytes())
 
 	// Request
 	assert.Exactly(t, http.MethodPost, got.Request.Method)

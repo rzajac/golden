@@ -18,8 +18,11 @@ type Request struct {
 	Body     string   `yaml:"body"`
 	BodyType string   `yaml:"bodyType"`
 
-	headers http.Header // Request headers.
-	t       T           // Test manager.
+	// Request headers parsed from Headers field during validation.
+	headers http.Header
+
+	// Test manager.
+	t T
 }
 
 // Validate validates request loaded from golden file.
@@ -77,7 +80,7 @@ func (req *Request) Assert(got *http.Request) {
 
 	var equal bool
 	switch req.BodyType {
-	case BodyJSON:
+	case PayloadJSON:
 		equal = JSONBytesEqual(req.t, []byte(req.Body), body)
 	default:
 		equal = req.Body == string(body)
@@ -95,6 +98,7 @@ func (req *Request) Assert(got *http.Request) {
 
 // Request returns HTTP request matching golden file. It panics on error.
 func (req *Request) Request() *http.Request {
+	req.t.Helper()
 	httpReq := httptest.NewRequest(
 		req.Method,
 		req.Path,
@@ -102,13 +106,13 @@ func (req *Request) Request() *http.Request {
 	)
 	httpReq.URL.RawQuery = req.Query
 	httpReq.Header = lines2Headers(req.t, req.Headers...)
-
 	return httpReq
 }
 
-// UnmarshallJSONBody unmarshalls request body to v. Calls Fatal if body
-// section does not exist or json.Unmarshal returns error.
-func (req *Request) UnmarshallJSONBody(v interface{}) {
+// UnmarshallBody unmarshalls request body to v based on BodyType. Calls Fatal
+// if body cannot be unmarshalled.
+func (req *Request) UnmarshallBody(v interface{}) {
+	req.t.Helper()
 	if req.Body != "" {
 		if err := json.Unmarshal([]byte(req.Body), v); err != nil {
 			req.t.Fatal(err)
@@ -120,5 +124,6 @@ func (req *Request) UnmarshallJSONBody(v interface{}) {
 
 // BindQuery binds request query parameters to v.
 func (req *Request) BindQuery(tag string, v interface{}) {
+	req.t.Helper()
 	bindQuery(req.t, req.Query, tag, v)
 }
