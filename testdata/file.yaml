@@ -1,0 +1,3 @@
+payloadType: json
+payload: |
+    { "key1": "val1" }

@@ -22,29 +22,29 @@ type exchange struct {
 func Exchange(t T, data []byte) *exchange {
 	t.Helper()
 
-	gld := &exchange{}
-	if err := yaml.Unmarshal(data, gld); err != nil {
+	ex := &exchange{}
+	if err := yaml.Unmarshal(data, ex); err != nil {
 		t.Fatal(err)
 		return nil
 	}
-	gld.t = t
+	ex.t = t
 
-	if gld.Request != nil {
-		gld.Request.t = t
-		gld.Request.Validate()
+	if ex.Request != nil {
+		ex.Request.t = t
+		ex.Request.Validate()
 	}
 
-	if gld.Response != nil {
-		gld.Response.t = t
-		gld.Response.Validate()
+	if ex.Response != nil {
+		ex.Response.t = t
+		ex.Response.Validate()
 	}
 
-	return gld
+	return ex
 }
 
 // WriteTo implements io.WriteTo interface for writing golden files.
-func (gld *exchange) WriteTo(w io.Writer) (int64, error) {
-	data, err := yaml.Marshal(gld)
+func (ex *exchange) WriteTo(w io.Writer) (int64, error) {
+	data, err := yaml.Marshal(ex)
 	if err != nil {
 		return 0, err
 	}
