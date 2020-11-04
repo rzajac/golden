@@ -93,3 +93,12 @@ func Test_Response_UnmarshallBody(t *testing.T) {
 	require.Contains(t, m, "key2")
 	assert.Exactly(t, "val2", m["key2"])
 }
+
+func Test_Response_Bytes(t *testing.T) {
+	// --- When ---
+	gld := Exchange(t, Open(t, "testdata/response.yaml"))
+
+	// --- Then ---
+	exp := []byte("{ \"key2\": \"val2\" }\n")
+	assert.Exactly(t, exp, gld.Response.Bytes())
+}

@@ -179,3 +179,12 @@ func Test_Request_BindQuery(t *testing.T) {
 	assert.Exactly(t, "val0", t1.Key0)
 	assert.Exactly(t, "val1", t1.Key1)
 }
+
+func Test_Request_Bytes(t *testing.T) {
+	// --- When ---
+	gld := Exchange(t, Open(t, "testdata/request.yaml"))
+
+	// --- Then ---
+	exp := []byte("{\n  \"key2\": \"val2\"\n}\n")
+	assert.Exactly(t, exp, gld.Request.Bytes())
+}

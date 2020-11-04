@@ -18,7 +18,8 @@ type exchange struct {
 	t T
 }
 
-// Exchange creates instance representing HTTP request / response exchange.
+// Exchange unmarshalls YAML formatted data, validates request and response
+// fields and returns new instance of exchange.
 func Exchange(t T, data []byte) *exchange {
 	t.Helper()
 
@@ -42,7 +43,7 @@ func Exchange(t T, data []byte) *exchange {
 	return ex
 }
 
-// WriteTo implements io.WriteTo interface for writing golden files.
+// WriteTo writes golden file to w.
 func (ex *exchange) WriteTo(w io.Writer) (int64, error) {
 	data, err := yaml.Marshal(ex)
 	if err != nil {

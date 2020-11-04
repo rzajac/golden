@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-// Request represents HTTP request backed by a golden file.
+// Request represents golden file for HTTP request.
 type Request struct {
 	Method   string   `yaml:"method"`
 	Path     string   `yaml:"path"`
@@ -29,10 +29,12 @@ type Request struct {
 func (req *Request) Validate() {
 	if req.Method == "" {
 		req.t.Fatal(errors.New("HTTP request needs request method"))
+		return
 	}
 
 	if req.Path == "" {
 		req.t.Fatal(errors.New("HTTP request needs request path"))
+		return
 	}
 
 	if len(req.Headers) > 0 {
@@ -43,6 +45,13 @@ func (req *Request) Validate() {
 }
 
 // Assert asserts request matches the golden file.
+//
+// All headers defined in the golden file must match exactly but passed
+// request may have more headers then defined in the golden file.
+//
+// To compare request bodies the method best for defined body type is used.
+// For example when comparing JSON the data represented by JSON must match not
+// the exact JSON string.
 func (req *Request) Assert(got *http.Request) {
 	req.t.Helper()
 
@@ -81,7 +90,7 @@ func (req *Request) Assert(got *http.Request) {
 	var equal bool
 	switch req.BodyType {
 	case PayloadJSON:
-		equal = JSONBytesEqual(req.t, []byte(req.Body), body)
+		equal = AssertJSONEqual(req.t, []byte(req.Body), body)
 	default:
 		equal = req.Body == string(body)
 	}
@@ -96,7 +105,8 @@ func (req *Request) Assert(got *http.Request) {
 	}
 }
 
-// Request returns HTTP request matching golden file. It panics on error.
+// Request returns HTTP request represented by the golden file. It panics
+// on error.
 func (req *Request) Request() *http.Request {
 	req.t.Helper()
 	httpReq := httptest.NewRequest(
@@ -110,12 +120,13 @@ func (req *Request) Request() *http.Request {
 }
 
 // UnmarshallBody unmarshalls request body to v based on BodyType. Calls Fatal
-// if body cannot be unmarshalled.
+// if body cannot be unmarshalled. Currently only JSON payload is supported.
 func (req *Request) UnmarshallBody(v interface{}) {
 	req.t.Helper()
 	if req.Body != "" {
 		if err := json.Unmarshal([]byte(req.Body), v); err != nil {
 			req.t.Fatal(err)
+			return
 		}
 		return
 	}
@@ -126,4 +137,9 @@ func (req *Request) UnmarshallBody(v interface{}) {
 func (req *Request) BindQuery(tag string, v interface{}) {
 	req.t.Helper()
 	bindQuery(req.t, req.Query, tag, v)
+}
+
+// Bytes returns request body as byte slice.
+func (req *Request) Bytes() []byte {
+	return []byte(req.Body)
 }

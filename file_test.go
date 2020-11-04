@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func Test_File_File(t *testing.T) {
+func Test_file_File(t *testing.T) {
 	// --- When ---
 	gld := File(t, Open(t, "testdata/file.yaml"))
 
@@ -17,7 +17,16 @@ func Test_File_File(t *testing.T) {
 	assert.Exactly(t, `{ "key1": "val1" }`, gld.Payload)
 }
 
-func Test_File_WriteTo(t *testing.T) {
+func Test_file_Bytes(t *testing.T) {
+	// --- When ---
+	gld := File(t, Open(t, "testdata/file.yaml"))
+
+	// --- Then ---
+	exp := []byte(`{ "key1": "val1" }`)
+	assert.Exactly(t, exp, gld.Bytes())
+}
+
+func Test_file_WriteTo(t *testing.T) {
 	// --- Given ---
 	gld := File(t, Open(t, "testdata/file.yaml"))
 	dst := &bytes.Buffer{}
@@ -34,7 +43,7 @@ func Test_File_WriteTo(t *testing.T) {
 	assert.Exactly(t, `{ "key1": "val1" }`, got.Payload)
 }
 
-func Test_File_Unmarshall(t *testing.T) {
+func Test_file_Unmarshall(t *testing.T) {
 	// --- Given ---
 	gld := File(t, Open(t, "testdata/file.yaml"))
 
