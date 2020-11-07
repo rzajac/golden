@@ -24,7 +24,7 @@ func Test_Request_Assert(t *testing.T) {
 	req.URL.RawQuery = "key0=val0&key1=val1"
 
 	// --- When ---
-	gld := Exchange(t, Open(t, "testdata/request.yaml"))
+	gld := NewExchange(t, Open(t, "testdata/request.yaml", nil))
 
 	// --- Then ---
 	gld.Request.Assert(req)
@@ -39,7 +39,7 @@ func Test_Request_Assert_MethodDoesNotMatch(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/some/path", nil)
 
 	// --- When ---
-	gld := Exchange(mck, Open(mck, "testdata/request.yaml"))
+	gld := NewExchange(mck, Open(mck, "testdata/request.yaml", nil))
 
 	// --- Then ---
 	gld.Request.Assert(req)
@@ -59,7 +59,7 @@ func Test_Request_Assert_PathDoesNotMatch(t *testing.T) {
 	req := httptest.NewRequest(http.MethodPost, "/other/path", nil)
 
 	// --- When ---
-	gld := Exchange(mck, Open(mck, "testdata/request.yaml"))
+	gld := NewExchange(mck, Open(mck, "testdata/request.yaml", nil))
 
 	// --- Then ---
 	gld.Request.Assert(req)
@@ -80,7 +80,7 @@ func Test_Request_Assert_QueryDoesNotMatch(t *testing.T) {
 	req.URL.RawQuery = "key0=val0"
 
 	// --- When ---
-	gld := Exchange(mck, Open(mck, "testdata/request.yaml"))
+	gld := NewExchange(mck, Open(mck, "testdata/request.yaml", nil))
 
 	// --- Then ---
 	gld.Request.Assert(req)
@@ -103,7 +103,7 @@ func Test_Request_Assert_HeaderDoesNotMatch(t *testing.T) {
 	req.Header.Add("Authorization", "Bearer token2")
 
 	// --- When ---
-	gld := Exchange(mck, Open(mck, "testdata/request.yaml"))
+	gld := NewExchange(mck, Open(mck, "testdata/request.yaml", nil))
 
 	// --- Then ---
 	gld.Request.Assert(req)
@@ -122,7 +122,7 @@ func Test_Request_Assert_OnlyDefinedHeadersChecked(t *testing.T) {
 	req.Header.Add("Custom-Header", "custom data")
 
 	// --- When ---
-	gld := Exchange(mck, Open(mck, "testdata/request.yaml"))
+	gld := NewExchange(mck, Open(mck, "testdata/request.yaml", nil))
 
 	// --- Then ---
 	gld.Request.Assert(req)
@@ -130,7 +130,7 @@ func Test_Request_Assert_OnlyDefinedHeadersChecked(t *testing.T) {
 
 func Test_Request_Request(t *testing.T) {
 	// --- Given ---
-	gld := Exchange(t, Open(t, "testdata/request.yaml"))
+	gld := NewExchange(t, Open(t, "testdata/request.yaml", nil))
 
 	// --- When ---
 	got := gld.Request.Request()
@@ -148,13 +148,13 @@ func Test_Request_Request(t *testing.T) {
 	assert.Exactly(t, "application/json", got.Header.Values("Content-Type")[0])
 }
 
-func Test_Request_UnmarshallBody(t *testing.T) {
+func Test_Request_Unmarshall(t *testing.T) {
 	// --- Given ---
-	gld := Exchange(t, Open(t, "testdata/request.yaml"))
+	gld := NewExchange(t, Open(t, "testdata/request.yaml", nil))
 
 	// --- When ---
 	m := make(map[string]string, 1)
-	gld.Request.UnmarshallBody(&m)
+	gld.Request.Unmarshall(&m)
 
 	// --- Then ---
 	require.Len(t, m, 1)
@@ -164,7 +164,7 @@ func Test_Request_UnmarshallBody(t *testing.T) {
 
 func Test_Request_BindQuery(t *testing.T) {
 	// --- Given ---
-	gld := Exchange(t, Open(t, "testdata/request.yaml"))
+	gld := NewExchange(t, Open(t, "testdata/request.yaml", nil))
 
 	type T1 struct {
 		Key0 string `form:"key0"`
@@ -182,7 +182,7 @@ func Test_Request_BindQuery(t *testing.T) {
 
 func Test_Request_Bytes(t *testing.T) {
 	// --- When ---
-	gld := Exchange(t, Open(t, "testdata/request.yaml"))
+	gld := NewExchange(t, Open(t, "testdata/request.yaml", nil))
 
 	// --- Then ---
 	exp := []byte("{\n  \"key2\": \"val2\"\n}\n")

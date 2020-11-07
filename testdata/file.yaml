@@ -1,3 +1,4 @@
-payloadType: json
-payload: |
+# Comment.
+bodyType: json
+body: |
     { "key1": "val1" }

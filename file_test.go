@@ -8,27 +8,27 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func Test_file_File(t *testing.T) {
+func Test_File_New(t *testing.T) {
 	// --- When ---
-	gld := File(t, Open(t, "testdata/file.yaml"))
+	gld := New(t, Open(t, "testdata/file.yaml", nil))
 
 	// --- Then ---
-	assert.Exactly(t, PayloadJSON, gld.PayloadType)
-	assert.Exactly(t, `{ "key1": "val1" }`, gld.Payload)
+	assert.Exactly(t, TypeJSON, gld.BodyType)
+	assert.Exactly(t, `{ "key1": "val1" }`, gld.Body)
 }
 
-func Test_file_Bytes(t *testing.T) {
+func Test_File_Bytes(t *testing.T) {
 	// --- When ---
-	gld := File(t, Open(t, "testdata/file.yaml"))
+	gld := New(t, Open(t, "testdata/file.yaml", nil))
 
 	// --- Then ---
 	exp := []byte(`{ "key1": "val1" }`)
 	assert.Exactly(t, exp, gld.Bytes())
 }
 
-func Test_file_WriteTo(t *testing.T) {
+func Test_File_WriteTo(t *testing.T) {
 	// --- Given ---
-	gld := File(t, Open(t, "testdata/file.yaml"))
+	gld := New(t, Open(t, "testdata/file.yaml", nil))
 	dst := &bytes.Buffer{}
 
 	// --- When ---
@@ -36,16 +36,16 @@ func Test_file_WriteTo(t *testing.T) {
 
 	// --- Then ---
 	assert.NoError(t, err)
-	assert.Exactly(t, int64(48), n)
+	assert.Exactly(t, int64(42), n)
 
-	got := File(t, dst.Bytes())
-	assert.Exactly(t, PayloadJSON, got.PayloadType)
-	assert.Exactly(t, `{ "key1": "val1" }`, got.Payload)
+	got := New(t, dst.Bytes())
+	assert.Exactly(t, TypeJSON, got.BodyType)
+	assert.Exactly(t, `{ "key1": "val1" }`, got.Body)
 }
 
-func Test_file_Unmarshall(t *testing.T) {
+func Test_File_Unmarshall(t *testing.T) {
 	// --- Given ---
-	gld := File(t, Open(t, "testdata/file.yaml"))
+	gld := New(t, Open(t, "testdata/file.yaml", nil))
 
 	// --- When ---
 	m := make(map[string]string, 1)

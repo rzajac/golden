@@ -1,6 +1,7 @@
 package golden
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -11,15 +12,15 @@ import (
 type Response struct {
 	StatusCode int      `yaml:"statusCode"`
 	Headers    []string `yaml:"headers"`
-	Body       string   `yaml:"body"`
 	BodyType   string   `yaml:"bodyType"`
+	Body       string   `yaml:"body"`
 
 	headers http.Header // Request headers.
 	t       T           // Test manager.
 }
 
-// Validate validates response loaded from golden file.
-func (rsp *Response) Validate() {
+// validate validates response loaded from golden file.
+func (rsp *Response) validate() {
 	if rsp.StatusCode == 0 {
 		rsp.t.Fatal(errors.New("HTTP response needs response code"))
 		return
@@ -37,9 +38,9 @@ func (rsp *Response) Validate() {
 // All headers defined in the golden file must match exactly but passed
 // response may have more headers then defined in the golden file.
 //
-// To compare response bodies the method best for defined body type is used.
-// For example when comparing JSON the data represented by JSON must match not
-// the exact JSON string.
+// To compare response bodies a method best suited for body type is used.
+// For example when comparing JSON bodies both byte slices don't have to be
+// identical but they must represent the same data.
 func (rsp *Response) Assert(got *http.Response) {
 	rsp.t.Helper()
 
@@ -71,10 +72,12 @@ func (rsp *Response) Assert(got *http.Response) {
 
 	var equal bool
 	switch rsp.BodyType {
-	case PayloadJSON:
-		equal = AssertJSONEqual(rsp.t, []byte(rsp.Body), body)
+	case TypeJSON:
+		equal = assertJSONEqual(rsp.t, rsp.Bytes(), body)
+	case TypeText:
+		equal = bytes.Equal(rsp.Bytes(), body)
 	default:
-		equal = rsp.Body == string(body)
+		equal = bytes.Equal(rsp.Bytes(), body)
 	}
 
 	if !equal {
@@ -87,12 +90,12 @@ func (rsp *Response) Assert(got *http.Response) {
 	}
 }
 
-// UnmarshallBody unmarshalls response body to v based on BodyType. Calls Fatal
-// if body cannot be unmarshalled. Currently only JSON payload is supported.
-func (rsp *Response) UnmarshallBody(v interface{}) {
+// Unmarshall unmarshalls response body to v based on BodyType. Calls Fatal
+// if body cannot be unmarshalled. Currently only JSON body type is supported.
+func (rsp *Response) Unmarshall(v interface{}) {
 	rsp.t.Helper()
 	if rsp.Body != "" {
-		if err := json.Unmarshal([]byte(rsp.Body), v); err != nil {
+		if err := json.Unmarshal(rsp.Bytes(), v); err != nil {
 			rsp.t.Fatal(err)
 			return
 		}

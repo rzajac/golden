@@ -16,44 +16,47 @@ import (
 	"github.com/gorilla/schema"
 )
 
-// Open reads golden file and returns its content as byte slice.
-func Open(t T, pth string) []byte {
-	data, err := ioutil.ReadFile(pth)
-	if err != nil {
-		t.Fatal(err)
-		return nil
-	}
-	return data
-}
-
-// Template reads golden file template, renders it with data and
-// returns it as byte slice.
-func Template(t T, pth string, data interface{}) []byte {
+// Open reads golden file pointed by pth and returns it as a byte slice.
+//
+// If data is not nil the golden file pointed by pth is treated as a template
+// and applies a parsed template to the specified data object.
+func Open(t T, pth string, data interface{}) []byte {
 	content, err := ioutil.ReadFile(pth)
 	if err != nil {
 		t.Fatal(err)
 		return nil
 	}
 
-	tpl, err := template.New("golden").Parse(string(content))
-	if err != nil {
-		t.Fatal(err)
-		return nil
+	if data != nil {
+		tpl, err := template.New("golden").Parse(string(content))
+		if err != nil {
+			t.Fatal(err)
+			return nil
+		}
+		buf := &bytes.Buffer{}
+		if err := tpl.Execute(buf, data); err != nil {
+			t.Fatal(err)
+			return nil
+		}
+		return buf.Bytes()
 	}
 
-	buf := &bytes.Buffer{}
-	if err := tpl.Execute(buf, data); err != nil {
-		t.Fatal(err)
-		return nil
-	}
-
-	return buf.Bytes()
+	return content
 }
 
-// Headers2Lines returns headers in wire format as slice of strings.
+// Map is a helper type for constructing template data.
+type Map map[string]interface{}
+
+// Add adds key and val to map and returns map for chaining.
+func (m Map) Add(key string, val interface{}) Map {
+	m[key] = val
+	return m
+}
+
+// headers2Lines returns headers in wire format as slice of strings.
 // Returned lines do not have trailing \r\n characters and the last
 // empty line is removed.
-func Headers2Lines(t T, hs http.Header) []string {
+func headers2Lines(t T, hs http.Header) []string {
 	buf := &bytes.Buffer{}
 	if err := hs.Write(buf); err != nil {
 		t.Fatal(err)
@@ -66,8 +69,8 @@ func Headers2Lines(t T, hs http.Header) []string {
 	return lns
 }
 
-// AssertJSONEqual asserts two JSON representations are the same.
-func AssertJSONEqual(t T, a, b []byte) bool {
+// assertJSONEqual asserts two JSON representations are the same.
+func assertJSONEqual(t T, a, b []byte) bool {
 	var ja, jb interface{}
 	if err := json.Unmarshal(a, &ja); err != nil {
 		t.Fatal(err)
@@ -80,17 +83,8 @@ func AssertJSONEqual(t T, a, b []byte) bool {
 	return reflect.DeepEqual(jb, ja)
 }
 
-// Map is a helper type for constructing template data.
-type Map map[string]interface{}
-
-// Add adds key and val to map and returns map for chaining.
-func (m Map) Add(key string, val interface{}) Map {
-	m[key] = val
-	return m
-}
-
 // lines2Headers creates http.Header from header lines. It does exactly
-// opposite of Headers2Lines function.
+// opposite of headers2Lines function.
 func lines2Headers(t T, lines ...string) http.Header {
 	rdr := strings.NewReader(strings.Join(lines, "\r\n") + "\r\n\r\n")
 	tp := textproto.NewReader(bufio.NewReader(rdr))

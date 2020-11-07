@@ -24,7 +24,7 @@ func Test_Response_Assert(t *testing.T) {
 	rsp.Body = ioutil.NopCloser(strings.NewReader(body))
 
 	// --- When ---
-	gld := Exchange(t, Open(t, "testdata/response.yaml"))
+	gld := NewExchange(t, Open(t, "testdata/response.yaml", nil))
 
 	// --- Then ---
 	gld.Response.Assert(rsp)
@@ -52,7 +52,7 @@ func Test_Response_Assert_HeaderDoesNotMatch(t *testing.T) {
 	rsp.Body = ioutil.NopCloser(strings.NewReader(body))
 
 	// --- When ---
-	gld := Exchange(mck, Open(mck, "testdata/response.yaml"))
+	gld := NewExchange(mck, Open(mck, "testdata/response.yaml", nil))
 
 	// --- Then ---
 	gld.Response.Assert(rsp)
@@ -74,19 +74,19 @@ func Test_Response_Assert_OnlyDefinedHeadersChecked(t *testing.T) {
 	rsp.Body = ioutil.NopCloser(strings.NewReader(body))
 
 	// --- When ---
-	gld := Exchange(mck, Open(mck, "testdata/response.yaml"))
+	gld := NewExchange(mck, Open(mck, "testdata/response.yaml", nil))
 
 	// --- Then ---
 	gld.Response.Assert(rsp)
 }
 
-func Test_Response_UnmarshallBody(t *testing.T) {
+func Test_Response_Unmarshall(t *testing.T) {
 	// --- Given ---
-	gld := Exchange(t, Open(t, "testdata/response.yaml"))
+	gld := NewExchange(t, Open(t, "testdata/response.yaml", nil))
 
 	// --- When ---
 	m := make(map[string]string, 1)
-	gld.Response.UnmarshallBody(&m)
+	gld.Response.Unmarshall(&m)
 
 	// --- Then ---
 	require.Len(t, m, 1)
@@ -96,7 +96,7 @@ func Test_Response_UnmarshallBody(t *testing.T) {
 
 func Test_Response_Bytes(t *testing.T) {
 	// --- When ---
-	gld := Exchange(t, Open(t, "testdata/response.yaml"))
+	gld := NewExchange(t, Open(t, "testdata/response.yaml", nil))
 
 	// --- Then ---
 	exp := []byte("{ \"key2\": \"val2\" }\n")

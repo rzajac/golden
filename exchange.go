@@ -6,8 +6,8 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// exchange represents HTTP request / response exchange.
-type exchange struct {
+// Exchange represents HTTP request / response exchange.
+type Exchange struct {
 	// HTTP request.
 	Request *Request `yaml:"request"`
 
@@ -18,12 +18,11 @@ type exchange struct {
 	t T
 }
 
-// Exchange unmarshalls YAML formatted data, validates request and response
-// fields and returns new instance of exchange.
-func Exchange(t T, data []byte) *exchange {
+// NewExchange returns new instance of HTTP request / response Exchange.
+func NewExchange(t T, data []byte) *Exchange {
 	t.Helper()
 
-	ex := &exchange{}
+	ex := &Exchange{}
 	if err := yaml.Unmarshal(data, ex); err != nil {
 		t.Fatal(err)
 		return nil
@@ -32,19 +31,19 @@ func Exchange(t T, data []byte) *exchange {
 
 	if ex.Request != nil {
 		ex.Request.t = t
-		ex.Request.Validate()
+		ex.Request.validate()
 	}
 
 	if ex.Response != nil {
 		ex.Response.t = t
-		ex.Response.Validate()
+		ex.Response.validate()
 	}
 
 	return ex
 }
 
 // WriteTo writes golden file to w.
-func (ex *exchange) WriteTo(w io.Writer) (int64, error) {
+func (ex *Exchange) WriteTo(w io.Writer) (int64, error) {
 	data, err := yaml.Marshal(ex)
 	if err != nil {
 		return 0, err

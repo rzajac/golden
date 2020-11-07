@@ -1,15 +1,17 @@
 package golden
 
-// Types of payload.
+// Golden file body type.
 const (
-	// PayloadText represents text payload (default).
-	PayloadText = "text"
+	// TypeText represents golden file text body type (default).
+	TypeText = "text"
 
-	// PayloadJSON represents JSON payload.
-	PayloadJSON = "json"
+	// TypeJSON represents golden file JSON body type.
+	TypeJSON = "json"
 )
 
 // T is a subset of testing.TB interface.
+// It's primarily used to test golden package but can be used to implement
+// custom actions to be taken on errors.
 type T interface {
 	// Fatal is equivalent to Log followed by FailNow.
 	Fatal(args ...interface{})

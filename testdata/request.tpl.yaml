@@ -1,3 +1,4 @@
+# Comment.
 request:
     method: POST
     path: /some/path

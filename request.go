@@ -1,6 +1,7 @@
 package golden
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -15,8 +16,8 @@ type Request struct {
 	Path     string   `yaml:"path"`
 	Query    string   `yaml:"query"`
 	Headers  []string `yaml:"headers"`
-	Body     string   `yaml:"body"`
 	BodyType string   `yaml:"bodyType"`
+	Body     string   `yaml:"body"`
 
 	// Request headers parsed from Headers field during validation.
 	headers http.Header
@@ -25,8 +26,8 @@ type Request struct {
 	t T
 }
 
-// Validate validates request loaded from golden file.
-func (req *Request) Validate() {
+// validate validates request loaded from golden file.
+func (req *Request) validate() {
 	if req.Method == "" {
 		req.t.Fatal(errors.New("HTTP request needs request method"))
 		return
@@ -50,8 +51,8 @@ func (req *Request) Validate() {
 // request may have more headers then defined in the golden file.
 //
 // To compare request bodies the method best for defined body type is used.
-// For example when comparing JSON the data represented by JSON must match not
-// the exact JSON string.
+// For example when comparing JSON bodies both byte slices don't have to be
+// identical but they must represent the same data.
 func (req *Request) Assert(got *http.Request) {
 	req.t.Helper()
 
@@ -89,10 +90,12 @@ func (req *Request) Assert(got *http.Request) {
 
 	var equal bool
 	switch req.BodyType {
-	case PayloadJSON:
-		equal = AssertJSONEqual(req.t, []byte(req.Body), body)
+	case TypeJSON:
+		equal = assertJSONEqual(req.t, req.Bytes(), body)
+	case TypeText:
+		equal = bytes.Equal(req.Bytes(), body)
 	default:
-		equal = req.Body == string(body)
+		equal = bytes.Equal(req.Bytes(), body)
 	}
 
 	if !equal {
@@ -119,12 +122,12 @@ func (req *Request) Request() *http.Request {
 	return httpReq
 }
 
-// UnmarshallBody unmarshalls request body to v based on BodyType. Calls Fatal
-// if body cannot be unmarshalled. Currently only JSON payload is supported.
-func (req *Request) UnmarshallBody(v interface{}) {
+// Unmarshall unmarshalls request body to v based on BodyType. Calls Fatal
+// if body cannot be unmarshalled. Currently only JSON body type is supported.
+func (req *Request) Unmarshall(v interface{}) {
 	req.t.Helper()
 	if req.Body != "" {
-		if err := json.Unmarshal([]byte(req.Body), v); err != nil {
+		if err := json.Unmarshal(req.Bytes(), v); err != nil {
 			req.t.Fatal(err)
 			return
 		}

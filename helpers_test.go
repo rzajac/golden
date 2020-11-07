@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_helpers_Headers2Lines(t *testing.T) {
+func Test_helpers_headers2Lines(t *testing.T) {
 	// --- Given ---
 	hs := http.Header{}
 	hs.Add("Authorization", "Bearer token")
@@ -18,7 +18,7 @@ func Test_helpers_Headers2Lines(t *testing.T) {
 	hs.Add("Custom-Header", "val1")
 
 	// --- When ---
-	lns := Headers2Lines(t, hs)
+	lns := headers2Lines(t, hs)
 
 	// --- Then ---
 	assert.Len(t, lns, 3)
@@ -27,12 +27,12 @@ func Test_helpers_Headers2Lines(t *testing.T) {
 	assert.Exactly(t, "Custom-Header: val1", lns[2])
 }
 
-func Test_helpers_Headers2Lines_emptyHeaders(t *testing.T) {
+func Test_helpers_headers2Lines_emptyHeaders(t *testing.T) {
 	// --- Given ---
 	hs := http.Header{}
 
 	// --- When ---
-	lns := Headers2Lines(t, hs)
+	lns := headers2Lines(t, hs)
 
 	// --- Then ---
 	assert.Len(t, lns, 0)

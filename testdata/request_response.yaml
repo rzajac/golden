@@ -1,3 +1,4 @@
+# Comment.
 request:
     method: POST
     path: /some/path
@@ -10,6 +11,8 @@ request:
         {
           "key2": "val2"
         }
+
+# Comment.
 response:
     statusCode: 200
     headers:
