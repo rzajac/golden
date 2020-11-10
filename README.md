@@ -1,5 +1,6 @@
-Golden is a small library to help with testing using golden files especially
-it provides an easy way to describe HTTP request / response as YAML files. 
+Golden is a small library to help with testing using golden files. Its main
+purpose (but not only one)  is to provide an easy way to describe 
+HTTP request / response as YAML files. 
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/rzajac/golden)](https://goreportcard.com/report/github.com/rzajac/golden)
 [![GoDoc](https://img.shields.io/badge/api-Godoc-blue.svg)](https://pkg.go.dev/github.com/rzajac/golden)
@@ -27,7 +28,7 @@ How to use it in test.
 ```go
 func Test_Assert(t *testing.T) {
     // --- Given --- 
-    gld := golden.File(t, golden.Open(t, "testdata/file.yaml", nil))
+    gld := golden.File(golden.Open(t, "testdata/file.yaml", nil))
     
     // --- When ---
     data := []byte(`{
@@ -40,21 +41,21 @@ func Test_Assert(t *testing.T) {
 ```
 
 Because the `bodyType` was set to `json` the `data` in the test doesn't 
-have to be formatted exactly the same way as it's in the golden file. 
+have to be formatted exactly the same way as it's in the golden file. The
+library is smart enough to compare data represented as JSON not the strings.  
 
 If you need exact match set `bodyType` to `text`.  
 
 ## Unmarshalling
 
 ```go
-
 type Data struct {
     Key1 string `json:"key1"`
 }
 
 func Test_Unmarshal(t *testing.T) {
     // --- Given ---
-    gld := golden.File(t, golden.Open(t, "../testdata/file.yaml", nil))
+    gld := golden.File(golden.Open(t, "../testdata/file.yaml", nil))
 
     // --- When ---
     data := &Data{}
@@ -104,7 +105,7 @@ Example test using golden file:
 func Test_Endpoint(t *testing.T) {
     // --- Given ---
     pth := "testdata/request.yaml"
-    gld := golden.Exchange(t, golden.Open(t, pth, nil))
+    gld := golden.Exchange(golden.Open(t, pth, nil))
 
     // Setup mocks.
     srvH, mckS := SrvMock()
@@ -156,7 +157,7 @@ func Test_Endpoint(t *testing.T) {
     token := GetTestToken()
     tplD := make(golden.Map).Add("token", token)
     tpl := "testdata/request.yaml"
-    gld := golden.Exchange(t, golden.Open(t, tpl, tplD))
+    gld := golden.Exchange(golden.Open(t, tpl, tplD))
 
     // Setup mocks.
     srvH, mckS := SrvMock()

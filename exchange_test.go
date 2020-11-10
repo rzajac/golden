@@ -11,7 +11,7 @@ import (
 
 func Test_Exchange_request(t *testing.T) {
 	// --- When ---
-	gld := NewExchange(t, Open(t, "testdata/request.yaml", nil))
+	gld := NewExchange(Open(t, "testdata/request.yaml", nil))
 
 	// --- Then ---
 	require.NotNil(t, gld.Request)
@@ -30,7 +30,7 @@ func Test_Exchange_request(t *testing.T) {
 
 func Test_Exchange_response(t *testing.T) {
 	// --- When ---
-	gld := NewExchange(t, Open(t, "testdata/response.yaml", nil))
+	gld := NewExchange(Open(t, "testdata/response.yaml", nil))
 
 	// --- Then ---
 	require.Nil(t, gld.Request)
@@ -47,7 +47,7 @@ func Test_Exchange_response(t *testing.T) {
 
 func Test_Exchange_request_response(t *testing.T) {
 	// --- When ---
-	gld := NewExchange(t, Open(t, "testdata/request_response.yaml", nil))
+	gld := NewExchange(Open(t, "testdata/request_response.yaml", nil))
 
 	// --- Then ---
 	require.NotNil(t, gld.Request)
@@ -83,7 +83,7 @@ func Test_Exchange_template(t *testing.T) {
 	}
 
 	// --- When ---
-	gld := NewExchange(t, Open(t, "testdata/request.tpl.yaml", data))
+	gld := NewExchange(Open(t, "testdata/request.tpl.yaml", data))
 
 	// --- Then ---
 	require.NotNil(t, gld.Request)
@@ -102,7 +102,7 @@ func Test_Exchange_template(t *testing.T) {
 
 func Test_Exchange_WriteTo(t *testing.T) {
 	// --- Given ---
-	gld := NewExchange(t, Open(t, "testdata/request_response.yaml", nil))
+	gld := NewExchange(Open(t, "testdata/request_response.yaml", nil))
 	dst := &bytes.Buffer{}
 
 	// --- When ---
@@ -112,7 +112,7 @@ func Test_Exchange_WriteTo(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Exactly(t, int64(395), n)
 
-	got := NewExchange(t, dst.Bytes())
+	got := NewExchange(t, dst)
 
 	// Request
 	assert.Exactly(t, http.MethodPost, got.Request.Method)

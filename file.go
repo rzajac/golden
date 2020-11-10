@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"io/ioutil"
 
 	"gopkg.in/yaml.v3"
 )
@@ -17,8 +18,14 @@ type File struct {
 }
 
 // New returns golden File representation.
-func New(t T, data []byte) *File {
+func New(t T, rdr io.Reader) *File {
 	t.Helper()
+
+	data, err := ioutil.ReadAll(rdr)
+	if err != nil {
+		t.Fatal(err)
+		return nil
+	}
 
 	fil := &File{
 		t: t,

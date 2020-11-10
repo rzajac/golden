@@ -20,28 +20,28 @@ import (
 //
 // If data is not nil the golden file pointed by pth is treated as a template
 // and applies a parsed template to the specified data object.
-func Open(t T, pth string, data interface{}) []byte {
+func Open(t T, pth string, data interface{}) (T, io.Reader) {
 	content, err := ioutil.ReadFile(pth)
 	if err != nil {
 		t.Fatal(err)
-		return nil
+		return t, nil
 	}
 
 	if data != nil {
 		tpl, err := template.New("golden").Parse(string(content))
 		if err != nil {
 			t.Fatal(err)
-			return nil
+			return t, nil
 		}
 		buf := &bytes.Buffer{}
 		if err := tpl.Execute(buf, data); err != nil {
 			t.Fatal(err)
-			return nil
+			return t, nil
 		}
-		return buf.Bytes()
+		return t, buf
 	}
 
-	return content
+	return t, bytes.NewReader(content)
 }
 
 // Map is a helper type for constructing template data.

@@ -10,7 +10,7 @@ import (
 
 func Test_File_New(t *testing.T) {
 	// --- When ---
-	gld := New(t, Open(t, "testdata/file.yaml", nil))
+	gld := New(Open(t, "testdata/file.yaml", nil))
 
 	// --- Then ---
 	assert.Exactly(t, TypeJSON, gld.BodyType)
@@ -19,7 +19,7 @@ func Test_File_New(t *testing.T) {
 
 func Test_File_Bytes(t *testing.T) {
 	// --- When ---
-	gld := New(t, Open(t, "testdata/file.yaml", nil))
+	gld := New(Open(t, "testdata/file.yaml", nil))
 
 	// --- Then ---
 	exp := []byte(`{ "key1": "val1" }`)
@@ -28,7 +28,7 @@ func Test_File_Bytes(t *testing.T) {
 
 func Test_File_WriteTo(t *testing.T) {
 	// --- Given ---
-	gld := New(t, Open(t, "testdata/file.yaml", nil))
+	gld := New(Open(t, "testdata/file.yaml", nil))
 	dst := &bytes.Buffer{}
 
 	// --- When ---
@@ -38,14 +38,14 @@ func Test_File_WriteTo(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Exactly(t, int64(42), n)
 
-	got := New(t, dst.Bytes())
+	got := New(t, dst)
 	assert.Exactly(t, TypeJSON, got.BodyType)
 	assert.Exactly(t, `{ "key1": "val1" }`, got.Body)
 }
 
 func Test_File_Unmarshall(t *testing.T) {
 	// --- Given ---
-	gld := New(t, Open(t, "testdata/file.yaml", nil))
+	gld := New(Open(t, "testdata/file.yaml", nil))
 
 	// --- When ---
 	m := make(map[string]string, 1)

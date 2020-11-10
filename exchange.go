@@ -2,6 +2,7 @@ package golden
 
 import (
 	"io"
+	"io/ioutil"
 
 	"gopkg.in/yaml.v3"
 )
@@ -19,8 +20,14 @@ type Exchange struct {
 }
 
 // NewExchange returns new instance of HTTP request / response Exchange.
-func NewExchange(t T, data []byte) *Exchange {
+func NewExchange(t T, rdr io.Reader) *Exchange {
 	t.Helper()
+
+	data, err := ioutil.ReadAll(rdr)
+	if err != nil {
+		t.Fatal(err)
+		return nil
+	}
 
 	ex := &Exchange{}
 	if err := yaml.Unmarshal(data, ex); err != nil {
