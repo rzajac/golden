@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/rzajac/golden/goldentest"
+	. "github.com/rzajac/golden/internal"
 )
 
 func Test_Request_Assert(t *testing.T) {
@@ -32,7 +32,7 @@ func Test_Request_Assert(t *testing.T) {
 
 func Test_Request_Assert_MethodDoesNotMatch(t *testing.T) {
 	// --- Given ---
-	mck := &goldentest.TMock{}
+	mck := &TMock{}
 	mck.On("Helper")
 	mck.On("Fatalf", "expected request method %s got %s", "POST", "GET")
 
@@ -47,7 +47,7 @@ func Test_Request_Assert_MethodDoesNotMatch(t *testing.T) {
 
 func Test_Request_Assert_PathDoesNotMatch(t *testing.T) {
 	// --- Given ---
-	mck := &goldentest.TMock{}
+	mck := &TMock{}
 	mck.On("Helper")
 	mck.On(
 		"Fatalf",
@@ -67,7 +67,7 @@ func Test_Request_Assert_PathDoesNotMatch(t *testing.T) {
 
 func Test_Request_Assert_QueryDoesNotMatch(t *testing.T) {
 	// --- Given ---
-	mck := &goldentest.TMock{}
+	mck := &TMock{}
 	mck.On("Helper")
 	mck.On(
 		"Fatalf",
@@ -88,7 +88,7 @@ func Test_Request_Assert_QueryDoesNotMatch(t *testing.T) {
 
 func Test_Request_Assert_HeaderDoesNotMatch(t *testing.T) {
 	// --- Given ---
-	mck := &goldentest.TMock{}
+	mck := &TMock{}
 	mck.On("Helper")
 	mck.On(
 		"Fatalf",
@@ -111,7 +111,7 @@ func Test_Request_Assert_HeaderDoesNotMatch(t *testing.T) {
 
 func Test_Request_Assert_OnlyDefinedHeadersChecked(t *testing.T) {
 	// --- Given ---
-	mck := &goldentest.TMock{}
+	mck := &TMock{}
 	mck.On("Helper")
 
 	body := strings.NewReader(`{"key2":"val2"}`)

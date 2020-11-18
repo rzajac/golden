@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/rzajac/golden/goldentest"
+	. "github.com/rzajac/golden/internal"
 )
 
 func Test_Response_Assert(t *testing.T) {
@@ -32,7 +32,7 @@ func Test_Response_Assert(t *testing.T) {
 
 func Test_Response_Assert_HeaderDoesNotMatch(t *testing.T) {
 	// --- Given ---
-	mck := &goldentest.TMock{}
+	mck := &TMock{}
 	mck.On("Helper")
 	mck.On(
 		"Fatalf",
@@ -60,7 +60,7 @@ func Test_Response_Assert_HeaderDoesNotMatch(t *testing.T) {
 
 func Test_Response_Assert_OnlyDefinedHeadersChecked(t *testing.T) {
 	// --- Given ---
-	mck := &goldentest.TMock{}
+	mck := &TMock{}
 	mck.On("Helper")
 
 	body := `{"key2":"val2"}`
