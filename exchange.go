@@ -20,10 +20,10 @@ type Exchange struct {
 }
 
 // NewExchange returns new instance of HTTP request / response Exchange.
-func NewExchange(t T, rdr io.Reader) *Exchange {
+func NewExchange(t T, r io.Reader) *Exchange {
 	t.Helper()
 
-	data, err := ioutil.ReadAll(rdr)
+	data, err := ioutil.ReadAll(r)
 	if err != nil {
 		t.Fatal(err)
 		return nil

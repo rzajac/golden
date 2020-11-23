@@ -1,9 +1,8 @@
 # Comment.
-response:
-    statusCode: 200
-    headers:
-        - 'Authorization: Bearer token'
-        - 'Content-Type: application/json'
-    bodyType: json
-    body: |
-        { "key2": "val2" }
+statusCode: 200
+headers:
+    - 'Authorization: Bearer token'
+    - 'Content-Type: application/json'
+bodyType: json
+body: |
+    { "key2": "val2" }

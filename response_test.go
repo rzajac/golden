@@ -12,6 +12,21 @@ import (
 	. "github.com/rzajac/golden/internal"
 )
 
+func Test_Response(t *testing.T) {
+	// --- When ---
+	gld := NewResponse(Open(t, "testdata/response.yaml", nil))
+
+	// --- Then ---
+	assert.Exactly(t, 200, gld.StatusCode)
+
+	exp := []string{
+		"Authorization: Bearer token",
+		"Content-Type: application/json",
+	}
+	assert.Exactly(t, exp, gld.Headers)
+	assert.Exactly(t, "{ \"key2\": \"val2\" }\n", gld.Body)
+}
+
 func Test_Response_Assert(t *testing.T) {
 	// --- Given ---
 	body := `{"key2":"val2"}`
@@ -24,10 +39,10 @@ func Test_Response_Assert(t *testing.T) {
 	rsp.Body = ioutil.NopCloser(strings.NewReader(body))
 
 	// --- When ---
-	gld := NewExchange(Open(t, "testdata/response.yaml", nil))
+	gld := NewResponse(Open(t, "testdata/response.yaml", nil))
 
 	// --- Then ---
-	gld.Response.Assert(rsp)
+	gld.Assert(rsp)
 }
 
 func Test_Response_Assert_HeaderDoesNotMatch(t *testing.T) {
@@ -52,10 +67,10 @@ func Test_Response_Assert_HeaderDoesNotMatch(t *testing.T) {
 	rsp.Body = ioutil.NopCloser(strings.NewReader(body))
 
 	// --- When ---
-	gld := NewExchange(Open(mck, "testdata/response.yaml", nil))
+	gld := NewResponse(Open(mck, "testdata/response.yaml", nil))
 
 	// --- Then ---
-	gld.Response.Assert(rsp)
+	gld.Assert(rsp)
 }
 
 func Test_Response_Assert_OnlyDefinedHeadersChecked(t *testing.T) {
@@ -74,19 +89,19 @@ func Test_Response_Assert_OnlyDefinedHeadersChecked(t *testing.T) {
 	rsp.Body = ioutil.NopCloser(strings.NewReader(body))
 
 	// --- When ---
-	gld := NewExchange(Open(mck, "testdata/response.yaml", nil))
+	gld := NewResponse(Open(mck, "testdata/response.yaml", nil))
 
 	// --- Then ---
-	gld.Response.Assert(rsp)
+	gld.Assert(rsp)
 }
 
 func Test_Response_Unmarshall(t *testing.T) {
 	// --- Given ---
-	gld := NewExchange(Open(t, "testdata/response.yaml", nil))
+	gld := NewResponse(Open(t, "testdata/response.yaml", nil))
 
 	// --- When ---
 	m := make(map[string]string, 1)
-	gld.Response.Unmarshall(&m)
+	gld.Unmarshall(&m)
 
 	// --- Then ---
 	require.Len(t, m, 1)
@@ -96,9 +111,9 @@ func Test_Response_Unmarshall(t *testing.T) {
 
 func Test_Response_Bytes(t *testing.T) {
 	// --- When ---
-	gld := NewExchange(Open(t, "testdata/response.yaml", nil))
+	gld := NewResponse(Open(t, "testdata/response.yaml", nil))
 
 	// --- Then ---
 	exp := []byte("{ \"key2\": \"val2\" }\n")
-	assert.Exactly(t, exp, gld.Response.Bytes())
+	assert.Exactly(t, exp, gld.Bytes())
 }

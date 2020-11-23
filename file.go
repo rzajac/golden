@@ -18,10 +18,10 @@ type File struct {
 }
 
 // New returns golden File representation.
-func New(t T, rdr io.Reader) *File {
+func New(t T, r io.Reader) *File {
 	t.Helper()
 
-	data, err := ioutil.ReadAll(rdr)
+	data, err := ioutil.ReadAll(r)
 	if err != nil {
 		t.Fatal(err)
 		return nil

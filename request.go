@@ -4,10 +4,14 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"io"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
 	"strings"
+
+	"gopkg.in/yaml.v3"
 )
 
 // Request represents golden file for HTTP request.
@@ -24,6 +28,27 @@ type Request struct {
 
 	// Test manager.
 	t T
+}
+
+// NewRequest returns new instance of Request.
+func NewRequest(t T, r io.Reader) *Request {
+	t.Helper()
+
+	data, err := ioutil.ReadAll(r)
+	if err != nil {
+		t.Fatal(err)
+		return nil
+	}
+
+	req := &Request{}
+	if err := yaml.Unmarshal(data, req); err != nil {
+		t.Fatal(err)
+		return nil
+	}
+	req.t = t
+	req.validate()
+
+	return req
 }
 
 // validate validates request loaded from golden file.

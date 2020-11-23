@@ -9,45 +9,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func Test_Exchange_request(t *testing.T) {
-	// --- When ---
-	gld := NewExchange(Open(t, "testdata/request.yaml", nil))
-
-	// --- Then ---
-	require.NotNil(t, gld.Request)
-	assert.Nil(t, gld.Response)
-	assert.Exactly(t, http.MethodPost, gld.Request.Method)
-	assert.Exactly(t, "/some/path", gld.Request.Path)
-	assert.Exactly(t, "key0=val0&key1=val1", gld.Request.Query)
-
-	exp := []string{
-		"Authorization: Bearer token",
-		"Content-Type: application/json",
-	}
-	assert.Exactly(t, exp, gld.Request.Headers)
-	assert.Exactly(t, "{\n  \"key2\": \"val2\"\n}\n", gld.Request.Body)
-}
-
-func Test_Exchange_response(t *testing.T) {
-	// --- When ---
-	gld := NewExchange(Open(t, "testdata/response.yaml", nil))
-
-	// --- Then ---
-	require.Nil(t, gld.Request)
-	assert.NotNil(t, gld.Response)
-	assert.Exactly(t, 200, gld.Response.StatusCode)
-
-	exp := []string{
-		"Authorization: Bearer token",
-		"Content-Type: application/json",
-	}
-	assert.Exactly(t, exp, gld.Response.Headers)
-	assert.Exactly(t, "{ \"key2\": \"val2\" }\n", gld.Response.Body)
-}
-
 func Test_Exchange_request_response(t *testing.T) {
 	// --- When ---
-	gld := NewExchange(Open(t, "testdata/request_response.yaml", nil))
+	gld := NewExchange(Open(t, "testdata/exchange.yaml", nil))
 
 	// --- Then ---
 	require.NotNil(t, gld.Request)
@@ -102,7 +66,7 @@ func Test_Exchange_template(t *testing.T) {
 
 func Test_Exchange_WriteTo(t *testing.T) {
 	// --- Given ---
-	gld := NewExchange(Open(t, "testdata/request_response.yaml", nil))
+	gld := NewExchange(Open(t, "testdata/exchange.yaml", nil))
 	dst := &bytes.Buffer{}
 
 	// --- When ---

@@ -4,8 +4,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"io"
+	"io/ioutil"
 	"net/http"
 	"reflect"
+
+	"gopkg.in/yaml.v3"
 )
 
 // Response represents golden file for HTTP response.
@@ -17,6 +21,27 @@ type Response struct {
 
 	headers http.Header // Request headers.
 	t       T           // Test manager.
+}
+
+// NewResponse returns new instance of Response.
+func NewResponse(t T, r io.Reader) *Response {
+	t.Helper()
+
+	data, err := ioutil.ReadAll(r)
+	if err != nil {
+		t.Fatal(err)
+		return nil
+	}
+
+	rsp := &Response{}
+	if err := yaml.Unmarshal(data, rsp); err != nil {
+		t.Fatal(err)
+		return nil
+	}
+	rsp.t = t
+	rsp.validate()
+
+	return rsp
 }
 
 // validate validates response loaded from golden file.

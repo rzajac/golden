@@ -1,13 +1,12 @@
 # Comment.
-request:
-    method: POST
-    path: /some/path
-    query: key0=val0&key1=val1
-    headers:
-        - 'Authorization: Bearer token'
-        - 'Content-Type: application/json'
-    bodyType: json
-    body: |
-        {
-          "key2": "val2"
-        }
+method: POST
+path: /some/path
+query: key0=val0&key1=val1
+headers:
+    - 'Authorization: Bearer token'
+    - 'Content-Type: application/json'
+bodyType: json
+body: |
+    {
+      "key2": "val2"
+    }
