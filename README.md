@@ -176,3 +176,7 @@ func Test_Endpoint(t *testing.T) {
 ```
 
 Check out the documentation to see full API.
+
+## License
+
+Apache License, Version 2.0
