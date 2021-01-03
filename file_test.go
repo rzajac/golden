@@ -43,13 +43,13 @@ func Test_File_WriteTo(t *testing.T) {
 	assert.Exactly(t, `{ "key1": "val1" }`, got.Body)
 }
 
-func Test_File_Unmarshall(t *testing.T) {
+func Test_File_Unmarshal_JSON(t *testing.T) {
 	// --- Given ---
 	gld := New(Open(t, "testdata/file.yaml", nil))
 
 	// --- When ---
 	m := make(map[string]string, 1)
-	gld.Unmarshall(&m)
+	gld.Unmarshal(&m)
 
 	// --- Then ---
 	require.Len(t, m, 1)

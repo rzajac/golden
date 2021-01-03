@@ -2,7 +2,6 @@ package golden
 
 import (
 	"bytes"
-	"encoding/json"
 	"errors"
 	"io"
 	"io/ioutil"
@@ -81,16 +80,14 @@ func (fil *File) WriteTo(w io.Writer) (int64, error) {
 	return int64(n), err
 }
 
-// Unmarshall unmarshalls file body to v based on BodyType. Currently
-// only JSON body type is supported.
-func (fil *File) Unmarshall(v interface{}) {
+// Unmarshal unmarshalls file body to v based on BodyType. When body type is
+// set to text v can be pointer to sting or byte slice (with enough space to
+// fit body). Calls Fatal if body cannot be unmarshalled.
+func (fil *File) Unmarshal(v interface{}) {
 	fil.t.Helper()
-	if fil.Body != "" {
-		if err := json.Unmarshal(fil.Bytes(), v); err != nil {
-			fil.t.Fatal(err)
-			return
-		}
+	if fil.Body == "" {
+		fil.t.Fatal(errors.New("golden file empty body"))
 		return
 	}
-	fil.t.Fatal(errors.New("golden file empty body"))
+	unmarshalBody(fil.t, fil.BodyType, fil.Body, v)
 }

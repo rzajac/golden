@@ -59,7 +59,7 @@ func Test_Unmarshal(t *testing.T) {
 
     // --- When ---
     data := &Data{}
-    gld.Unmarshall(data)
+    gld.Unmarshal(data)
 
     // --- Then ---
     if data.Key1 != "val1" {
@@ -70,7 +70,7 @@ func Test_Unmarshal(t *testing.T) {
 
 In this case golden file body will be unmarshalled (using `json.Unmarshal`)
 to structure `Data`. Any errors during unmarshalling will be handled by 
-`Unmarshall` method.
+`Unmarshal` method.
 
 ## Testing HTTP request / response
 

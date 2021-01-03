@@ -131,3 +131,28 @@ func bindQuery(t T, query, tag string, v interface{}) {
 		return
 	}
 }
+
+// unmarshalBody unmarshalls golden file body to v based on body type. When
+// body type is set to text v can be pointer to sting or byte slice (with
+// enough space to fit body). Calls Fatal if body cannot be unmarshalled.
+func unmarshalBody(t T, bt string, body string, v interface{}) {
+	switch bt {
+	case TypeJSON:
+		if err := json.Unmarshal([]byte(body), v); err != nil {
+			t.Fatal(err)
+			return
+		}
+	case TypeText:
+		switch vt := v.(type) {
+		case *string:
+			*vt = body
+		case *[]byte:
+			copy(*vt, body)
+		default:
+			t.Fatal(ErrUnknownUnmarshaler)
+		}
+
+	default:
+		t.Fatal(ErrUnknownUnmarshaler)
+	}
+}

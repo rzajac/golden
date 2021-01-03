@@ -95,13 +95,13 @@ func Test_Response_Assert_OnlyDefinedHeadersChecked(t *testing.T) {
 	gld.Assert(rsp)
 }
 
-func Test_Response_Unmarshall(t *testing.T) {
+func Test_Response_Unmarshal(t *testing.T) {
 	// --- Given ---
 	gld := NewResponse(Open(t, "testdata/response.yaml", nil))
 
 	// --- When ---
 	m := make(map[string]string, 1)
-	gld.Unmarshall(&m)
+	gld.Unmarshal(&m)
 
 	// --- Then ---
 	require.Len(t, m, 1)

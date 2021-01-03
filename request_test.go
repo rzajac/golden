@@ -166,13 +166,13 @@ func Test_Request_Request(t *testing.T) {
 	assert.Exactly(t, "application/json", got.Header.Values("Content-Type")[0])
 }
 
-func Test_Request_Unmarshall(t *testing.T) {
+func Test_Request_Unmarshal(t *testing.T) {
 	// --- Given ---
 	gld := NewRequest(Open(t, "testdata/request.yaml", nil))
 
 	// --- When ---
 	m := make(map[string]string, 1)
-	gld.Unmarshall(&m)
+	gld.Unmarshal(&m)
 
 	// --- Then ---
 	require.Len(t, m, 1)

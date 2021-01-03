@@ -29,7 +29,7 @@ func Test_Unmarshal(t *testing.T) {
 
 	// --- When ---
 	data := &Data{}
-	gld.Unmarshall(data)
+	gld.Unmarshal(data)
 
 	// --- Then ---
 	if data.Key1 != "val1" {

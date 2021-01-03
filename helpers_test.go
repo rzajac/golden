@@ -91,3 +91,40 @@ func Test_helpers_Map(t *testing.T) {
 	}
 	assert.Exactly(t, exp, map[string]interface{}(data))
 }
+
+func Test_helpers_unmarshalBody_JSON(t *testing.T) {
+	// --- Given ---
+	data := make(map[string]interface{})
+
+	// --- When ---
+	unmarshalBody(t, TypeJSON, `{"key1":"val1","key2":2}`, &data)
+
+	// --- Then ---
+	exp := map[string]interface{}{
+		"key1": "val1",
+		"key2": 2.0,
+	}
+	assert.Exactly(t, exp, data)
+}
+
+func Test_helpers_unmarshalBody_Text(t *testing.T) {
+	// --- Given ---
+	var m string
+
+	// --- When ---
+	unmarshalBody(t, TypeText, "Line 1\nLine 2", &m)
+
+	// --- Then ---
+	assert.Exactly(t, "Line 1\nLine 2", m)
+}
+
+func Test_helpers_unmarshalBody_Bytes(t *testing.T) {
+	// --- Given ---
+	m := make([]byte, 13)
+
+	// --- When ---
+	unmarshalBody(t, TypeText, "Line 1\nLine 2", &m)
+
+	// --- Then ---
+	assert.Exactly(t, []byte("Line 1\nLine 2"), m)
+}

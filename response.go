@@ -2,7 +2,6 @@ package golden
 
 import (
 	"bytes"
-	"encoding/json"
 	"errors"
 	"io"
 	"io/ioutil"
@@ -115,18 +114,15 @@ func (rsp *Response) Assert(got *http.Response) {
 	}
 }
 
-// Unmarshall unmarshalls response body to v based on BodyType. Calls Fatal
+// Unmarshal unmarshalls response body to v based on BodyType. Calls Fatal
 // if body cannot be unmarshalled. Currently only JSON body type is supported.
-func (rsp *Response) Unmarshall(v interface{}) {
+func (rsp *Response) Unmarshal(v interface{}) {
 	rsp.t.Helper()
-	if rsp.Body != "" {
-		if err := json.Unmarshal(rsp.Bytes(), v); err != nil {
-			rsp.t.Fatal(err)
-			return
-		}
+	if rsp.Body == "" {
+		rsp.t.Fatal(errors.New("golden file does not have body"))
 		return
 	}
-	rsp.t.Fatal(errors.New("golden file does not have body"))
+	unmarshalBody(rsp.t, rsp.BodyType, rsp.Body, v)
 }
 
 // Bytes returns request body as byte slice.

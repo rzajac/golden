@@ -1,5 +1,9 @@
 package golden
 
+import (
+	"errors"
+)
+
 // Golden file body type.
 const (
 	// TypeText represents golden file text body type (default).
@@ -8,6 +12,10 @@ const (
 	// TypeJSON represents golden file JSON body type.
 	TypeJSON = "json"
 )
+
+// ErrUnknownUnmarshaler represents an error when unmarshaler for golden file
+// body cannot be found.
+var ErrUnknownUnmarshaler = errors.New("unknown unmarshaler")
 
 // T is a subset of testing.TB interface.
 // It's primarily used to test golden package but can be used to implement

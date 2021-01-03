@@ -2,7 +2,6 @@ package golden
 
 import (
 	"bytes"
-	"encoding/json"
 	"errors"
 	"io"
 	"io/ioutil"
@@ -147,18 +146,16 @@ func (req *Request) Request() *http.Request {
 	return httpReq
 }
 
-// Unmarshall unmarshalls request body to v based on BodyType. Calls Fatal
-// if body cannot be unmarshalled. Currently only JSON body type is supported.
-func (req *Request) Unmarshall(v interface{}) {
+// Unmarshal unmarshalls request body to v based on body type. When
+// body type is set to text v can be pointer to sting or byte slice (with
+// enough space to fit body). Calls Fatal if body cannot be unmarshalled.
+func (req *Request) Unmarshal(v interface{}) {
 	req.t.Helper()
-	if req.Body != "" {
-		if err := json.Unmarshal(req.Bytes(), v); err != nil {
-			req.t.Fatal(err)
-			return
-		}
+	if req.Body == "" {
+		req.t.Fatal(errors.New("golden file does not have body"))
 		return
 	}
-	req.t.Fatal(errors.New("golden file does not have body"))
+	unmarshalBody(req.t, req.BodyType, req.Body, v)
 }
 
 // BindQuery binds request query parameters to v.
