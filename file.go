@@ -11,8 +11,9 @@ import (
 
 // File represents golden file with body and body type.
 type File struct {
-	BodyType string `yaml:"bodyType"`
-	Body     string `yaml:"body"`
+	Meta     map[string]interface{} `yaml:"meta,omitempty"`
+	BodyType string                 `yaml:"bodyType"`
+	Body     string                 `yaml:"body"`
 	t        T
 }
 
