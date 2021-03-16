@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	. "github.com/rzajac/golden/internal"
@@ -43,6 +44,27 @@ func Test_Response_Assert(t *testing.T) {
 
 	// --- Then ---
 	gld.Assert(rsp)
+}
+
+func Test_Response_Assert_diff(t *testing.T) {
+	// --- Given ---
+	body := `{"key1":"val1","key3":"val3","key4":"val4"}`
+	rsp := &http.Response{
+		Header: make(http.Header),
+	}
+	rsp.StatusCode = 200
+	rsp.Body = ioutil.NopCloser(strings.NewReader(body))
+
+	mck := &TMock{}
+	mck.On("Helper")
+	mck.On("Fatal", mock.AnythingOfType("string"))
+	gld := NewResponse(Open(mck, "testdata/response2.yaml", nil))
+
+	// --- When ---
+	gld.Assert(rsp)
+
+	// --- Then ---
+	mck.AssertExpectations(t)
 }
 
 func Test_Response_Assert_HeaderDoesNotMatch(t *testing.T) {

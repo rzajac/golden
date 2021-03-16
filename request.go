@@ -115,7 +115,9 @@ func (req *Request) Assert(got *http.Request) {
 	var equal bool
 	switch req.BodyType {
 	case TypeJSON:
-		equal = assertJSONEqual(req.t, req.Bytes(), body)
+		assertJSONEqual(req.t, req.Bytes(), body)
+		return
+
 	case TypeText:
 		equal = bytes.Equal(req.Bytes(), body)
 	default:

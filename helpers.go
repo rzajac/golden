@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"net/textproto"
 	"net/url"
-	"reflect"
 	"strings"
 	"text/template"
 
@@ -67,20 +66,6 @@ func headers2Lines(t T, hs http.Header) []string {
 		lns = lns[:len(lns)-1]
 	}
 	return lns
-}
-
-// assertJSONEqual asserts two JSON representations are the same.
-func assertJSONEqual(t T, a, b []byte) bool {
-	var ja, jb interface{}
-	if err := json.Unmarshal(a, &ja); err != nil {
-		t.Fatal(err)
-		return false
-	}
-	if err := json.Unmarshal(b, &jb); err != nil {
-		t.Fatal(err)
-		return false
-	}
-	return reflect.DeepEqual(jb, ja)
 }
 
 // lines2Headers creates http.Header from header lines. It does exactly

@@ -95,13 +95,17 @@ func (rsp *Response) Assert(got *http.Response) {
 	defer func() { got.Body = rc }()
 
 	var equal bool
+	exp, have := rsp.Bytes(), body
+
 	switch rsp.BodyType {
 	case TypeJSON:
-		equal = assertJSONEqual(rsp.t, rsp.Bytes(), body)
+		assertJSONEqual(rsp.t, exp, have)
+		return
+
 	case TypeText:
-		equal = bytes.Equal(rsp.Bytes(), body)
+		equal = bytes.Equal(exp, have)
 	default:
-		equal = bytes.Equal(rsp.Bytes(), body)
+		equal = bytes.Equal(exp, have)
 	}
 
 	if !equal {

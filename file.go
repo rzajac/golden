@@ -54,7 +54,9 @@ func (fil *File) Assert(data []byte) {
 	var equal bool
 	switch fil.BodyType {
 	case TypeJSON:
-		equal = assertJSONEqual(fil.t, fil.Bytes(), data)
+		assertJSONEqual(fil.t, fil.Bytes(), data)
+		return
+
 	case TypeText:
 		equal = bytes.Equal(fil.Bytes(), data)
 	default:
