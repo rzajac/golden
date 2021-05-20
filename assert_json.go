@@ -16,6 +16,8 @@ import (
 
 // assertJSONEqual asserts two JSON representations are the same.
 func assertJSONEqual(t T, a, b []byte) {
+	t.Helper()
+
 	var ja, jb interface{}
 	if err := json.Unmarshal(a, &ja); err != nil {
 		t.Fatal(err)
