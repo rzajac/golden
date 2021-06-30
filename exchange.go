@@ -53,8 +53,9 @@ func NewExchange(t T, r io.Reader) *Exchange {
 }
 
 // Assert makes the request described in the golden file to host and asserts
-// the response matches.
-func (ex *Exchange) Assert(host string) {
+// the response matches. It returns constructed request and received response
+// in case further assertions need to be done.
+func (ex *Exchange) Assert(host string) (*http.Request, *http.Response) {
 	u := url.URL{
 		Scheme:   ex.Request.Scheme,
 		Host:     host,
@@ -77,6 +78,7 @@ func (ex *Exchange) Assert(host string) {
 		ex.t.Fatal(err)
 	}
 	ex.Response.Assert(rsp)
+	return req, rsp
 }
 
 // WriteTo writes golden file to w.
