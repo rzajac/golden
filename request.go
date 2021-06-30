@@ -15,6 +15,7 @@ import (
 
 // Request represents golden file for HTTP request.
 type Request struct {
+	Scheme   string   `yaml:"scheme"`
 	Method   string   `yaml:"method"`
 	Path     string   `yaml:"path"`
 	Query    string   `yaml:"query"`

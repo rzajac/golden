@@ -28,6 +28,7 @@ func Test_Request(t *testing.T) {
 	}
 	assert.Exactly(t, exp, gld.Headers)
 	assert.Exactly(t, "{\n  \"key2\": \"val2\"\n}\n", gld.Body)
+	assert.Exactly(t, "https", gld.Scheme)
 }
 
 func Test_Request_Assert(t *testing.T) {

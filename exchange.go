@@ -3,6 +3,9 @@ package golden
 import (
 	"io"
 	"io/ioutil"
+	"net/http"
+	"net/url"
+	"strings"
 
 	"gopkg.in/yaml.v3"
 )
@@ -47,6 +50,33 @@ func NewExchange(t T, r io.Reader) *Exchange {
 	}
 
 	return ex
+}
+
+// Assert makes the request described in the golden file to host and asserts
+// the response matches.
+func (ex *Exchange) Assert(host string) {
+	u := url.URL{
+		Scheme:   ex.Request.Scheme,
+		Host:     host,
+		Path:     ex.Request.Path,
+		RawQuery: ex.Request.Query,
+	}
+
+	req, err := http.NewRequest(
+		ex.Request.Method,
+		u.String(),
+		strings.NewReader(ex.Request.Body),
+	)
+	if err != nil {
+		ex.t.Fatal(err)
+	}
+	req.Header = lines2Headers(ex.t, ex.Request.Headers...)
+	cli := &http.Client{}
+	rsp, err := cli.Do(req)
+	if err != nil {
+		ex.t.Fatal(err)
+	}
+	ex.Response.Assert(rsp)
 }
 
 // WriteTo writes golden file to w.
