@@ -4,10 +4,15 @@ method: POST
 path: /some/path
 query: key0=val0&key1=val1
 headers:
-    - 'Authorization: Bearer token'
-    - 'Content-Type: application/json'
+  - 'Authorization: Bearer token'
+  - 'Content-Type: application/json'
+meta:
+  key1: val1
+  key2: 123
+  key3: 12.3
+  key4: 2021-02-28T10:24:25.123Z
 bodyType: json
 body: |
-    {
-      "key2": "val2"
-    }
+  {
+    "key2": "val2"
+  }

@@ -5,6 +5,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -29,6 +30,13 @@ func Test_Request(t *testing.T) {
 	assert.Exactly(t, exp, gld.Headers)
 	assert.Exactly(t, "{\n  \"key2\": \"val2\"\n}\n", gld.Body)
 	assert.Exactly(t, "https", gld.Scheme)
+
+	assert.Exactly(t, "val1", gld.Meta["key1"])
+	assert.Exactly(t, 123, gld.Meta["key2"])
+	assert.Exactly(t, 12.3, gld.Meta["key3"])
+
+	expDate := time.Date(2021, 2, 28, 10, 24, 25, 123000000, time.UTC)
+	assert.Exactly(t, expDate, gld.Meta["key4"].(time.Time))
 }
 
 func Test_Request_Assert(t *testing.T) {

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -29,6 +30,13 @@ func Test_Exchange_request_response(t *testing.T) {
 	assert.Exactly(t, exp, gld.Request.Headers)
 	assert.Exactly(t, "{\n  \"key2\": \"val2\"\n}\n", gld.Request.Body)
 
+	assert.Exactly(t, "val1", gld.Request.Meta["key1"])
+	assert.Exactly(t, 123, gld.Request.Meta["key2"])
+	assert.Exactly(t, 12.3, gld.Request.Meta["key3"])
+
+	expDate := time.Date(2021, 2, 28, 10, 24, 25, 123000000, time.UTC)
+	assert.Exactly(t, expDate, gld.Request.Meta["key4"].(time.Time))
+
 	// Response
 	assert.Exactly(t, 200, gld.Response.StatusCode)
 
@@ -37,6 +45,13 @@ func Test_Exchange_request_response(t *testing.T) {
 	}
 	assert.Exactly(t, exp, gld.Response.Headers)
 	assert.Exactly(t, "{ \"success\": true }\n", gld.Response.Body)
+
+	assert.Exactly(t, "val2", gld.Response.Meta["key1"])
+	assert.Exactly(t, 456, gld.Response.Meta["key2"])
+	assert.Exactly(t, 4.56, gld.Response.Meta["key3"])
+
+	expDate = time.Date(2021, 7, 28, 10, 24, 25, 123000000, time.UTC)
+	assert.Exactly(t, expDate, gld.Response.Meta["key4"].(time.Time))
 }
 
 func Test_Exchange_template(t *testing.T) {
@@ -74,7 +89,7 @@ func Test_Exchange_WriteTo(t *testing.T) {
 
 	// --- Then ---
 	assert.NoError(t, err)
-	assert.Exactly(t, int64(395), n)
+	assert.Exactly(t, int64(620), n)
 
 	got := NewExchange(t, dst)
 

@@ -15,13 +15,14 @@ import (
 
 // Request represents golden file for HTTP request.
 type Request struct {
-	Scheme   string   `yaml:"scheme"`
-	Method   string   `yaml:"method"`
-	Path     string   `yaml:"path"`
-	Query    string   `yaml:"query"`
-	Headers  []string `yaml:"headers"`
-	BodyType string   `yaml:"bodyType"`
-	Body     string   `yaml:"body"`
+	Scheme   string                 `yaml:"scheme"`
+	Method   string                 `yaml:"method"`
+	Path     string                 `yaml:"path"`
+	Query    string                 `yaml:"query"`
+	Headers  []string               `yaml:"headers"`
+	BodyType string                 `yaml:"bodyType"`
+	Body     string                 `yaml:"body"`
+	Meta     map[string]interface{} `yaml:"meta,omitempty"`
 
 	// Request headers parsed from Headers field during validation.
 	headers http.Header

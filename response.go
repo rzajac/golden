@@ -13,10 +13,11 @@ import (
 
 // Response represents golden file for HTTP response.
 type Response struct {
-	StatusCode int      `yaml:"statusCode"`
-	Headers    []string `yaml:"headers"`
-	BodyType   string   `yaml:"bodyType"`
-	Body       string   `yaml:"body"`
+	StatusCode int                    `yaml:"statusCode"`
+	Headers    []string               `yaml:"headers"`
+	BodyType   string                 `yaml:"bodyType"`
+	Body       string                 `yaml:"body"`
+	Meta       map[string]interface{} `yaml:"meta,omitempty"`
 
 	headers http.Header // Request headers.
 	t       T           // Test manager.
