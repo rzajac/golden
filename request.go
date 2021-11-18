@@ -74,11 +74,11 @@ func (req *Request) validate() {
 // Assert asserts request matches the golden file.
 //
 // All headers defined in the golden file must match exactly but passed
-// request may have more headers then defined in the golden file.
+// request may have more headers than defined in the golden file.
 //
 // To compare request bodies the method best for defined body type is used.
 // For example when comparing JSON bodies both byte slices don't have to be
-// identical but they must represent the same data.
+// identical, but they must represent the same data.
 func (req *Request) Assert(got *http.Request) {
 	req.t.Helper()
 

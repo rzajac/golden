@@ -15,11 +15,26 @@ import (
 	"github.com/gorilla/schema"
 )
 
+// tplOpt represents template parsing option.
+type tplOpt func(tpl *template.Template) *template.Template
+
+// TplDelims sets the template action delimiters to the specified strings.
+func TplDelims(left, right string) tplOpt {
+	return func(tpl *template.Template) *template.Template {
+		return tpl.Delims(left, right)
+	}
+}
+
 // Open reads golden file pointed by pth and returns it as a byte slice.
 //
 // If data is not nil the golden file pointed by pth is treated as a template
 // and applies a parsed template to the specified data object.
-func Open(t T, pth string, data interface{}) (T, io.Reader) {
+//
+// You can set template action delimiters using TplDelims function:
+//
+//   Open(t, "golden.yml", data, TplDelims("[[", "]]"))
+//
+func Open(t T, pth string, data interface{}, opts ...tplOpt) (T, io.Reader) {
 	content, err := ioutil.ReadFile(pth)
 	if err != nil {
 		t.Fatal(err)
@@ -27,7 +42,12 @@ func Open(t T, pth string, data interface{}) (T, io.Reader) {
 	}
 
 	if data != nil {
-		tpl, err := template.New("golden").Parse(string(content))
+		tpl := template.New("golden")
+		for _, opt := range opts {
+			tpl = opt(tpl)
+		}
+
+		tpl, err := tpl.Parse(string(content))
 		if err != nil {
 			t.Fatal(err)
 			return t, nil
@@ -92,7 +112,7 @@ func readBody(t T, rc io.ReadCloser) ([]byte, io.ReadCloser) {
 		t.Fatal(err)
 		return nil, nil
 	}
-	rc.Close()
+	_ = rc.Close()
 	lns := strings.Split(string(data), "\n")
 	for i := range lns {
 		lns[i] = strings.TrimRight(lns[i], "\r")
